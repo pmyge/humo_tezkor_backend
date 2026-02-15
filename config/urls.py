@@ -18,6 +18,7 @@ from django.contrib import admin
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.views.static import serve
 from django.urls import path, include, re_path
+from django.conf import settings
 from django.http import HttpResponse
 
 def health_check(request):
