@@ -15,12 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from django.views.static import serve
+from django.urls import path, include, re_path
+from django.http import HttpResponse
+
+def health_check(request):
+    return HttpResponse("OK")
 
 urlpatterns = [
+    path('', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     # API endpoints
     path('api/auth/', include('users.urls')),
@@ -35,7 +39,6 @@ urlpatterns = [
 ]
 
 from django.views.static import serve
-from django.urls import re_path
 
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
