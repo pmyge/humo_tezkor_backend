@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--gc%zx-#!-dm7khjntk-n(rvd$$(&lj3fsyr&upgc)%artzke^'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure--gc%zx-#!-dm7khjntk-n(rvd$$(&lj3fsyr&upgc)%artzke^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -186,6 +186,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://punyo-api-99.loca.lt",
     "https://punyo-front-99.loca.lt",
     "https://frontend-gold-delta-10.vercel.app",
+    "https://punyo-market-backend.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
