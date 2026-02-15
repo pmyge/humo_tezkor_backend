@@ -11,13 +11,16 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ('order', 'name')
     
     fieldsets = (
-        ('Asosiy ma\'lumotlar', {
+        ('General', {
             'fields': ('name', 'name_ru', 'image')
         }),
-        ('Sozlamalar', {
+        ('Settings', {
             'fields': ('order', 'is_active')
         }),
     )
+
+    class Media:
+        js = ('products/admin_translate.js',)
 
 
 @admin.register(Product)
@@ -29,14 +32,16 @@ class ProductAdmin(admin.ModelAdmin):
     ordering = ('category', 'order', 'name')
     
     fieldsets = (
-        ('Asosiy ma\'lumotlar', {
+        ('General', {
             'fields': ('category', 'name', 'name_ru', 'image', 'price')
         }),
-        ('Tavsif', {
+        ('Description', {
             'fields': ('description', 'description_ru'),
-            'classes': ('collapse',)
         }),
-        ('Sozlamalar', {
+        ('Settings', {
             'fields': ('order', 'is_active')
         }),
     )
+
+    class Media:
+        js = ('products/admin_translate.js',)
