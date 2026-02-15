@@ -25,3 +25,5 @@ class TelegramLoginSerializer(serializers.Serializer):
 class PhoneVerifySerializer(serializers.Serializer):
     telegram_user_id = serializers.IntegerField()
     phone_number = serializers.CharField(max_length=20)
+    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)

@@ -66,6 +66,10 @@ def phone_verify(request):
     user = get_object_or_404(UserProfile, telegram_user_id=data['telegram_user_id'])
     
     user.phone_number = data['phone_number']
+    if data.get('first_name'):
+        user.first_name = data['first_name']
+    if data.get('last_name'):
+        user.last_name = data['last_name']
     user.save()
     
     return Response(UserSerializer(user).data)
