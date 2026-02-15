@@ -71,7 +71,15 @@ def phone_verify(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
-    user = get_object_or_404(UserProfile, telegram_user_id=data['telegram_user_id'])
+    # Get or create user to ensure registration works even if /start wasn't called
+    user, created = UserProfile.objects.get_or_create(
+        telegram_user_id=data['telegram_user_id'],
+        defaults={
+            'username': f"user_{data['telegram_user_id']}",
+            'first_name': data.get('first_name', ''),
+            'last_name': data.get('last_name', ''),
+        }
+    )
     
     user.phone_number = data['phone_number']
     if data.get('first_name'):
