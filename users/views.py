@@ -42,15 +42,23 @@ def telegram_login(request):
     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 def get_user_info(request):
-    """Get user info by telegram_user_id"""
-    telegram_user_id = request.query_params.get('telegram_user_id')
+    """Get or update user info by telegram_user_id"""
+    telegram_user_id = request.query_params.get('telegram_user_id') or request.data.get('telegram_user_id')
     
     if not telegram_user_id:
         return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
     
     user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
+    
+    if request.method == 'PATCH':
+        user.first_name = request.data.get('first_name', user.first_name)
+        user.last_name = request.data.get('last_name', user.last_name)
+        if 'language' in request.data:
+            user.language = request.data['language']
+        user.save()
+        
     return Response(UserSerializer(user).data)
 
 
