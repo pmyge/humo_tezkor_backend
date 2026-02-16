@@ -179,17 +179,15 @@ SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX': '/api/',
 }
 
-# CORS settings - allow frontend to access API
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://punyo-api-99.loca.lt",
-    "https://punyo-front-99.loca.lt",
-    "https://frontend-gold-delta-10.vercel.app",
-    "https://punyo-market-backend.onrender.com",
-]
-
 CORS_ALLOW_CREDENTIALS = True
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://frontend-gold-delta-10.vercel.app",
+        "https://punyo-market-backend.onrender.com",
+    ]
 
 from corsheaders.defaults import default_headers
 
