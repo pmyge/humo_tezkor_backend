@@ -23,4 +23,10 @@ if not User.objects.filter(username='admin').exists():
     )
     print("✅ Superuser 'admin' created with password 'admin'")
 else:
+    # Ensure existing admin doesn't have a telegram_user_id to avoid Mini App overlap
+    existing_admin = User.objects.get(username='admin')
+    if existing_admin.telegram_user_id is not None:
+        existing_admin.telegram_user_id = None
+        existing_admin.save()
+        print("🧹 Existing admin's telegram_user_id cleared to avoid overlap")
     print("ℹ️ Superuser 'admin' already exists")
