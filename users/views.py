@@ -130,6 +130,15 @@ def phone_verify(request):
     print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
     
     return Response(UserSerializer(user).data)
+@api_view(['PATCH'])
+def change_language(request):
+    """Update user language preference"""
+    telegram_user_id = request.data.get('telegram_user_id')
+    language = request.data.get('language')
+    
+    if not telegram_user_id or not language:
+        return Response({'error': 'telegram_user_id and language required'}, status=status.HTTP_400_BAD_REQUEST)
+    
     # Get or create the user safely
     user, created = UserProfile.objects.get_or_create(
         telegram_user_id=telegram_user_id,
@@ -144,6 +153,8 @@ def phone_verify(request):
         return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
         
     user.language = language
+    user.save()
+    return Response(UserSerializer(user).data)
     # Wait, does the model have a language field? Let me check.
     user.save()
     
