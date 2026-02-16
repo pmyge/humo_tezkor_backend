@@ -71,25 +71,36 @@ def get_user_info(request):
         print(f"DEBUG: Updating user {telegram_user_id} with data: {request.data}")
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
+        tg_username = request.data.get('username')
+        
+        # Define default names that should be overwritable
+        DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
         
         # If explicitly provided in the request, we update it.
         # But for regular users, we LOCK the name to Telegram identity.
-        # Staff can still change names for administrative purposes if needed.
         if is_admin_account:
             if 'first_name' in request.data:
                 user.first_name = first_name
             if 'last_name' in request.data:
                 user.last_name = last_name
         else:
-            # Regular users: names are synced from Telegram, so we ignore manual PATCH updates
-            # from the Profile screen to prevent overriding the Telegram name.
-            if 'first_name' in request.data or 'last_name' in request.data:
-                print(f"DEBUG: Ignoring manual name update for non-staff user {telegram_user_id}")
+            # Regular users: names are synced from Telegram.
+            # We ONLY update if the incoming name is "real" (not one of the defaults) 
+            # or if the current name is a default.
+            if first_name and (user.first_name in DEFAULT_NAMES or first_name not in DEFAULT_NAMES):
+                user.first_name = first_name
+            
+            if last_name:
+                user.last_name = last_name
+            
+            # Update username if it looks like a real telegram username (optional)
+            if tg_username and user.username.startswith('user_'):
+                user.username = tg_username
             
         if 'language' in request.data:
             user.language = request.data['language']
         user.save()
-        print(f"DEBUG: User updated: {user.first_name}, {user.phone_number}")
+        print(f"DEBUG: User updated: {user.first_name}, {user.username}, {user.phone_number}")
         
     return Response(UserSerializer(user).data)
 
@@ -123,6 +134,7 @@ def phone_verify(request):
     user.phone_number = data['phone_number']
     first_name = data.get('first_name')
     last_name = data.get('last_name')
+    tg_username = data.get('username')
     
     # Define default names that should be overwritable
     DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
@@ -134,8 +146,12 @@ def phone_verify(request):
     if last_name:
         user.last_name = last_name
         
+    # Update username if it's better than the default 'user_id'
+    if tg_username and (user.username.startswith('user_') or user.username == ''):
+        user.username = tg_username
+        
     user.save()
-    print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
+    print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.username}, {user.phone_number}")
     
     return Response(UserSerializer(user).data)
 @api_view(['PATCH'])
