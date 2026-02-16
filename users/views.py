@@ -53,11 +53,20 @@ def get_user_info(request):
     user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
     
     if request.method == 'PATCH':
-        user.first_name = request.data.get('first_name', user.first_name)
-        user.last_name = request.data.get('last_name', user.last_name)
+        print(f"DEBUG: Updating user {telegram_user_id} with data: {request.data}")
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        
+        # Prevent overwriting with default/empty names if we already have data
+        if first_name and first_name not in ['Admin', 'User', 'Mehmon']:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+            
         if 'language' in request.data:
             user.language = request.data['language']
         user.save()
+        print(f"DEBUG: User updated: {user.first_name}, {user.phone_number}")
         
     return Response(UserSerializer(user).data)
 
@@ -65,9 +74,11 @@ def get_user_info(request):
 @api_view(['POST'])
 def phone_verify(request):
     """Verify and save user phone number"""
+    print(f"DEBUG: phone_verify received data: {request.data}")
     serializer = PhoneVerifySerializer(data=request.data)
     
     if not serializer.is_valid():
+        print(f"DEBUG: phone_verify serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
@@ -76,17 +87,23 @@ def phone_verify(request):
         telegram_user_id=data['telegram_user_id'],
         defaults={
             'username': f"user_{data['telegram_user_id']}",
-            'first_name': data.get('first_name', ''),
+            'first_name': data.get('first_name', 'User'),
             'last_name': data.get('last_name', ''),
         }
     )
     
     user.phone_number = data['phone_number']
-    if data.get('first_name'):
-        user.first_name = data['first_name']
-    if data.get('last_name'):
-        user.last_name = data['last_name']
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    
+    # Only update name if it's not a default one
+    if first_name and first_name not in ['Admin', 'User', 'Mehmon']:
+        user.first_name = first_name
+    if last_name:
+        user.last_name = last_name
+        
     user.save()
+    print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
     
     return Response(UserSerializer(user).data)
 @api_view(['PATCH'])

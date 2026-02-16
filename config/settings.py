@@ -183,10 +183,19 @@ CORS_ALLOW_CREDENTIALS = True
 
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+    CSRF_TRUSTED_ORIGINS = [
+        "https://*.loca.lt",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 else:
     CORS_ALLOWED_ORIGINS = [
         "https://frontend-gold-delta-10.vercel.app",
         "https://punyo-market-backend.onrender.com",
+    ]
+    # Add production frontend to CSRF trust if needed
+    CSRF_TRUSTED_ORIGINS = [
+        "https://frontend-gold-delta-10.vercel.app",
     ]
 
 from corsheaders.defaults import default_headers
