@@ -155,7 +155,3 @@ def change_language(request):
     user.language = language
     user.save()
     return Response(UserSerializer(user).data)
-    # Wait, does the model have a language field? Let me check.
-    user.save()
-    
-    return Response(UserSerializer(user).data)
