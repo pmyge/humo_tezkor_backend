@@ -102,12 +102,12 @@ def phone_verify(request):
     # Define default names that should be overwritable
     DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
     
-    # If the user was NOT created (already exists), update their name if it's currently a default
-    if not created:
-        if first_name and (first_name not in DEFAULT_NAMES or user.first_name in DEFAULT_NAMES):
-            user.first_name = first_name
-        if last_name and (last_name or user.last_name in DEFAULT_NAMES):
-            user.last_name = last_name
+    # Update name if provided name is BETTER than current (Transition from Default to Real)
+    if first_name and (user.first_name in DEFAULT_NAMES or first_name not in DEFAULT_NAMES):
+        user.first_name = first_name
+    
+    if last_name:
+        user.last_name = last_name
         
     user.save()
     print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
