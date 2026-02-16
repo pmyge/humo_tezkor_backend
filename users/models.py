@@ -16,10 +16,25 @@ class UserProfile(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = "User Profile"
-        verbose_name_plural = "User Profiles"
+        verbose_name = "Manager (Staff)"
+        verbose_name_plural = "Administration Team"
         ordering = ['-created_at']
     
+    def __str__(self):
+        name = f"{self.first_name} {self.last_name}".strip() or self.username
+        if self.is_staff:
+            return f"{name} (ADMIN)"
+        return f"{name} ({self.phone_number or 'No phone'}) - {self.telegram_user_id}"
+
+
+class Customer(UserProfile):
+    """Proxy model for Mini App customers (Non-staff)"""
+    class Meta:
+        proxy = True
+        verbose_name = "Mini App User"
+        verbose_name_plural = "Users (Mini App)"
+        ordering = ['-created_at']
+
     def __str__(self):
         name = f"{self.first_name} {self.last_name}".strip() or self.username
         return f"{name} ({self.phone_number or 'No phone'}) - {self.telegram_user_id}"

@@ -50,12 +50,14 @@ def get_user_info(request):
     if not telegram_user_id:
         return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Use get_or_create to handle database resets (SQLite on Render)
-    user, created = UserProfile.objects.get_or_create(
+    # Use get_or_create but ENSURE it's not a staff account
+    # We filter by is_staff=False to keep Mini App and Admin completely separate
+    user, created = UserProfile.objects.filter(is_staff=False).get_or_create(
         telegram_user_id=telegram_user_id,
         defaults={
             'username': f"user_{telegram_user_id}",
-            'first_name': 'User'
+            'first_name': 'User',
+            'is_staff': False
         }
     )
     
@@ -90,13 +92,14 @@ def phone_verify(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
-    # Get or create user
-    user, created = UserProfile.objects.get_or_create(
+    # Get or create user - Ensure it's not a staff account
+    user, created = UserProfile.objects.filter(is_staff=False).get_or_create(
         telegram_user_id=data['telegram_user_id'],
         defaults={
             'username': f"user_{data['telegram_user_id']}",
             'first_name': data.get('first_name') or 'User',
             'last_name': data.get('last_name', ''),
+            'is_staff': False
         }
     )
     
