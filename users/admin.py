@@ -4,7 +4,7 @@ from .models import UserProfile, Customer
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('username', 'is_staff', 'is_superuser', 'last_login')
+    list_display = ('username', 'phone_number', 'is_staff', 'is_superuser', 'last_login')
     list_filter = ('is_staff', 'is_superuser')
     search_fields = ('username', 'email')
     
