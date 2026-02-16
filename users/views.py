@@ -57,8 +57,11 @@ def get_user_info(request):
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         
-        # Prevent overwriting with default/empty names if we already have data
-        if first_name and first_name not in ['Admin', 'User', 'Mehmon']:
+        # Define default names that should be overwritable
+        DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
+        
+        # Update name if provided name is NOT default OR if current name IS default
+        if first_name and (first_name not in DEFAULT_NAMES or user.first_name in DEFAULT_NAMES):
             user.first_name = first_name
         if last_name:
             user.last_name = last_name
@@ -82,12 +85,12 @@ def phone_verify(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
-    # Get or create user to ensure registration works even if /start wasn't called
+    # Get or create user
     user, created = UserProfile.objects.get_or_create(
         telegram_user_id=data['telegram_user_id'],
         defaults={
             'username': f"user_{data['telegram_user_id']}",
-            'first_name': data.get('first_name', 'User'),
+            'first_name': data.get('first_name') or 'User',
             'last_name': data.get('last_name', ''),
         }
     )
@@ -96,11 +99,15 @@ def phone_verify(request):
     first_name = data.get('first_name')
     last_name = data.get('last_name')
     
-    # Only update name if it's not a default one
-    if first_name and first_name not in ['Admin', 'User', 'Mehmon']:
-        user.first_name = first_name
-    if last_name:
-        user.last_name = last_name
+    # Define default names that should be overwritable
+    DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
+    
+    # If the user was NOT created (already exists), update their name if it's currently a default
+    if not created:
+        if first_name and (first_name not in DEFAULT_NAMES or user.first_name in DEFAULT_NAMES):
+            user.first_name = first_name
+        if last_name and (last_name or user.last_name in DEFAULT_NAMES):
+            user.last_name = last_name
         
     user.save()
     print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
