@@ -35,7 +35,8 @@ ALLOWED_HOSTS = [
     "punyo-api-99.loca.lt",
     "punyo-front-99.loca.lt",
     ".loca.lt",
-    ".onrender.com", # Allow Render domains
+    ".onrender.com",
+    "*", # Robustness for Render health checks
 ]
 
 USE_X_FORWARDED_HOST = True
