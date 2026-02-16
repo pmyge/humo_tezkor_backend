@@ -21,4 +21,5 @@ class UserProfile(AbstractUser):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.telegram_user_id})"
+        name = f"{self.first_name} {self.last_name}".strip() or self.username
+        return f"{name} ({self.phone_number or 'No phone'}) - {self.telegram_user_id}"
