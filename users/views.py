@@ -50,7 +50,14 @@ def get_user_info(request):
     if not telegram_user_id:
         return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
+    # Use get_or_create to handle database resets (SQLite on Render)
+    user, created = UserProfile.objects.get_or_create(
+        telegram_user_id=telegram_user_id,
+        defaults={
+            'username': f"user_{telegram_user_id}",
+            'first_name': 'User'
+        }
+    )
     
     if request.method == 'PATCH':
         print(f"DEBUG: Updating user {telegram_user_id} with data: {request.data}")
