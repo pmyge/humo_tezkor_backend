@@ -127,7 +127,13 @@ def change_language(request):
     if not telegram_user_id or not language:
         return Response({'error': 'telegram_user_id and language required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
+    user, created = UserProfile.objects.get_or_create(
+        telegram_user_id=telegram_user_id,
+        defaults={
+            'username': f"user_{telegram_user_id}",
+            'first_name': 'User'
+        }
+    )
     user.language = language  # Ensure language field exists in model
     # Wait, does the model have a language field? Let me check.
     user.save()
