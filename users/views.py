@@ -50,9 +50,8 @@ def get_user_info(request):
     if not telegram_user_id:
         return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Use get_or_create but ENSURE it's not a staff account
-    # We filter by is_staff=False to keep Mini App and Admin completely separate
-    user, created = UserProfile.objects.filter(is_staff=False).get_or_create(
+    # First, try to get or create the user WITHOUT the staff filter to avoid IntegrityErrors
+    user, created = UserProfile.objects.get_or_create(
         telegram_user_id=telegram_user_id,
         defaults={
             'username': f"user_{telegram_user_id}",
@@ -61,13 +60,19 @@ def get_user_info(request):
         }
     )
     
+    # If the user is staff, we don't allow the Mini App to update their profile info
+    # through these specific endpoints, to keep Admin the team separate.
+    is_admin_account = user.is_staff
+    
     if request.method == 'PATCH':
+        if is_admin_account:
+            return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
+            
         print(f"DEBUG: Updating user {telegram_user_id} with data: {request.data}")
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         
         # If explicitly provided in the request, we update it.
-        # This fixes the issue where a manual change might have been blocked by default name checks.
         if 'first_name' in request.data:
             user.first_name = first_name
         if 'last_name' in request.data:
@@ -92,8 +97,8 @@ def phone_verify(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
-    # Get or create user - Ensure it's not a staff account
-    user, created = UserProfile.objects.filter(is_staff=False).get_or_create(
+    # First, get or create the user WITHOUT the staff filter to avoid IntegrityErrors
+    user, created = UserProfile.objects.get_or_create(
         telegram_user_id=data['telegram_user_id'],
         defaults={
             'username': f"user_{data['telegram_user_id']}",
@@ -102,6 +107,10 @@ def phone_verify(request):
             'is_staff': False
         }
     )
+    
+    # Protect staff accounts if they somehow have a Telegram ID
+    if user.is_staff:
+        return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
     
     user.phone_number = data['phone_number']
     first_name = data.get('first_name')
@@ -121,16 +130,8 @@ def phone_verify(request):
     print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.phone_number}")
     
     return Response(UserSerializer(user).data)
-@api_view(['PATCH'])
-def change_language(request):
-    """Update user language preference"""
-    telegram_user_id = request.data.get('telegram_user_id')
-    language = request.data.get('language')
-    
-    if not telegram_user_id or not language:
-        return Response({'error': 'telegram_user_id and language required'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    user, created = UserProfile.objects.filter(is_staff=False).get_or_create(
+    # Get or create the user safely
+    user, created = UserProfile.objects.get_or_create(
         telegram_user_id=telegram_user_id,
         defaults={
             'username': f"user_{telegram_user_id}",
@@ -138,6 +139,10 @@ def change_language(request):
             'is_staff': False
         }
     )
+    
+    if user.is_staff:
+        return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
+        
     user.language = language
     # Wait, does the model have a language field? Let me check.
     user.save()
