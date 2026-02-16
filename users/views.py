@@ -73,10 +73,18 @@ def get_user_info(request):
         last_name = request.data.get('last_name')
         
         # If explicitly provided in the request, we update it.
-        if 'first_name' in request.data:
-            user.first_name = first_name
-        if 'last_name' in request.data:
-            user.last_name = last_name
+        # But for regular users, we LOCK the name to Telegram identity.
+        # Staff can still change names for administrative purposes if needed.
+        if is_admin_account:
+            if 'first_name' in request.data:
+                user.first_name = first_name
+            if 'last_name' in request.data:
+                user.last_name = last_name
+        else:
+            # Regular users: names are synced from Telegram, so we ignore manual PATCH updates
+            # from the Profile screen to prevent overriding the Telegram name.
+            if 'first_name' in request.data or 'last_name' in request.data:
+                print(f"DEBUG: Ignoring manual name update for non-staff user {telegram_user_id}")
             
         if 'language' in request.data:
             user.language = request.data['language']
