@@ -17,7 +17,7 @@ if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser(
         username='admin',
         password='admin',
-        telegram_user_id=12345678,  # Dummy ID for admin
+        telegram_user_id=None,  # Do not assign Telegram ID to admin to avoid overlap
         first_name='Admin',
         last_name='User'
     )
