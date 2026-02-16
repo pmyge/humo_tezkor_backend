@@ -57,13 +57,11 @@ def get_user_info(request):
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         
-        # Define default names that should be overwritable
-        DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
-        
-        # Update name if provided name is NOT default OR if current name IS default
-        if first_name and (first_name not in DEFAULT_NAMES or user.first_name in DEFAULT_NAMES):
+        # If explicitly provided in the request, we update it.
+        # This fixes the issue where a manual change might have been blocked by default name checks.
+        if 'first_name' in request.data:
             user.first_name = first_name
-        if last_name:
+        if 'last_name' in request.data:
             user.last_name = last_name
             
         if 'language' in request.data:
