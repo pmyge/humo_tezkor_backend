@@ -190,13 +190,16 @@ if DEBUG:
         "http://127.0.0.1:3000",
     ]
 else:
+    # In Production (Render), we need to be careful but accessible
     CORS_ALLOWED_ORIGINS = [
         "https://frontend-gold-delta-10.vercel.app",
         "https://punyo-market-backend.onrender.com",
+        "https://*.loca.lt", # Allow tunnel for testing
     ]
-    # Add production frontend to CSRF trust if needed
     CSRF_TRUSTED_ORIGINS = [
         "https://frontend-gold-delta-10.vercel.app",
+        "https://punyo-market-backend.onrender.com",
+        "https://*.loca.lt", # Allow tunnel for testing
     ]
 
 from corsheaders.defaults import default_headers
