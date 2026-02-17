@@ -48,24 +48,13 @@ def telegram_login(request):
     else:
         # Try to find by username (bot often uses telegram_{id} or actual username)
         username = data.get('username')
-        user = UserProfile.objects.filter(username=username).first() if username else None
+        user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
         
-        if user and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
-            print(f"DEBUG: Found orphaned record by username {username}. Linking to ID {telegram_user_id}")
-            user.telegram_user_id = telegram_user_id
-            if data.get('first_name'): user.first_name = data['first_name']
-            if data.get('last_name'): user.last_name = data['last_name']
-            user.save()
-            created = False
-        else:
-            # Create new
-            user = UserProfile.objects.create(
-                telegram_user_id=telegram_user_id,
-                username=username or f"user_{telegram_user_id}",
-                first_name=data.get('first_name', ''),
-                last_name=data.get('last_name', '')
-            )
-            created = True
+        if not user:
+            print(f"DEBUG: User {telegram_user_id} not found in telegram_login. Returning 404.")
+            return Response({'error': 'User not registered'}, status=status.HTTP_404_NOT_FOUND)
+        
+        created = False
     
     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
@@ -79,15 +68,14 @@ def get_user_info(request):
         print(f"DEBUG: Rejected invalid or fallback telegram_user_id in get_user_info: {telegram_user_id}")
         return Response({'error': 'Valid Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # First, try to get or create the user WITHOUT the staff filter to avoid IntegrityErrors
-    user, created = UserProfile.objects.get_or_create(
-        telegram_user_id=telegram_user_id,
-        defaults={
-            'username': f"user_{telegram_user_id}",
-            'first_name': 'User',
-            'is_staff': False
-        }
-    )
+    # First, try to get the user
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
+    
+    if not user:
+        print(f"DEBUG: User {telegram_user_id} not found in get_user_info. Returning 404.")
+        return Response({'error': 'User not registered'}, status=status.HTTP_404_NOT_FOUND)
+    
+    created = False
     
     # If the user is staff, we don't allow the Mini App to update their profile info
     # through these specific endpoints, to keep Admin the team separate.
