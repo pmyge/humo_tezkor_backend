@@ -10,5 +10,7 @@
         value: "False"
       - key: DATABASE_URL
         value: sqlite:///db.sqlite3
+      - key: PORT
+        value: 10000
       - key: PYTHON_VERSION
         value: 3.12.3
