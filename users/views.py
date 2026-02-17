@@ -120,43 +120,46 @@ def phone_verify(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     data = serializer.validated_data
-    # First, get or create the user WITHOUT the staff filter to avoid IntegrityErrors
-    user, created = UserProfile.objects.get_or_create(
-        telegram_user_id=data['telegram_user_id'],
-        defaults={
-            'username': f"user_{data['telegram_user_id']}",
-            'first_name': data.get('first_name') or 'User',
-            'last_name': data.get('last_name', ''),
-            'is_staff': False
-        }
-    )
+    telegram_user_id = data['telegram_user_id']
+    phone_number = data['phone_number']
+
+    # 1. Try to find user by telegram_user_id (Primary Identity)
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
-    # Protect staff accounts if they somehow have a Telegram ID
+    # 2. If not found by ID, maybe check if a user with this phone ALREADY exists
+    # to avoid creating duplicate accounts for the same person if they use different test IDs.
+    if not user:
+        user = UserProfile.objects.filter(phone_number=phone_number).first()
+        if user:
+            print(f"DEBUG: Found user by phone {phone_number} instead of ID {telegram_user_id}. Linking ID.")
+            user.telegram_user_id = telegram_user_id
+    
+    # 3. Still not found? Create new one.
+    if not user:
+        user = UserProfile.objects.create(
+            telegram_user_id=telegram_user_id,
+            username=f"user_{telegram_user_id}",
+            first_name=data.get('first_name') or 'User',
+            last_name=data.get('last_name', ''),
+            phone_number=phone_number,
+            is_staff=False
+        )
+    else:
+        # Update existing user
+        user.phone_number = phone_number
+        if 'first_name' in data and data['first_name'] not in ['Admin', 'User', 'Mehmon', 'Гость', '', None]:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'username' in data and (user.username.startswith('user_') or user.username == ''):
+            user.username = data['username']
+        user.save()
+
+    # Protect staff accounts
     if user.is_staff:
         return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
     
-    user.phone_number = data['phone_number']
-    first_name = data.get('first_name')
-    last_name = data.get('last_name')
-    tg_username = data.get('username')
-    
-    # Define default names that should be overwritable
-    DEFAULT_NAMES = ['Admin', 'User', 'Mehmon', 'Гость', '', None]
-    
-    # Update name if provided name is BETTER than current (Transition from Default to Real)
-    if first_name and (user.first_name in DEFAULT_NAMES or first_name not in DEFAULT_NAMES):
-        user.first_name = first_name
-    
-    if last_name:
-        user.last_name = last_name
-        
-    # Update username if it's better than the default 'user_id'
-    if tg_username and (user.username.startswith('user_') or user.username == ''):
-        user.username = tg_username
-        
-    user.save()
     print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.username}, {user.phone_number}")
-    
     return Response(UserSerializer(user).data)
 @api_view(['PATCH'])
 def change_language(request):
