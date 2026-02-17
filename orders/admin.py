@@ -18,9 +18,12 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     actions = ['confirm_orders', 'mark_delivered']
     
-    @admin.display(description='User')
     def display_user(self, obj):
-        return str(obj.user)
+        try:
+            return str(obj.user)
+        except:
+            return "No User"
+    display_user.short_description = 'User'
 
     @admin.action(description='Buyurtmani tasdiqlash')
     def confirm_orders(self, request, queryset):
@@ -35,7 +38,7 @@ class OrderAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Info', {
-            'fields': ('id', 'user', 'phone_number', 'status')
+            'fields': ('user', 'phone_number', 'status')
         }),
         ('Details', {
             'fields': ('total_amount', 'delivery_address', 'latitude', 'longitude', 'notes')

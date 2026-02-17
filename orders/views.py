@@ -10,54 +10,64 @@ from .serializers import OrderSerializer
 
 from django.db import transaction
 from products.models import Product
+from decimal import Decimal
+import traceback
 
 @api_view(['POST'])
 @transaction.atomic
 def create_order(request):
     """Create a new order with items and location"""
-    data = request.data
-    telegram_user_id = data.get('telegram_user_id')
-    items_data = data.get('items', [])
-    
-    if not telegram_user_id:
-        return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    if not items_data:
-        return Response({'error': 'items required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        data = request.data
+        telegram_user_id = data.get('telegram_user_id')
+        items_data = data.get('items', [])
         
-    user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
-    
-    # Create the Order
-    order = Order.objects.create(
-        user=user,
-        phone_number=data.get('phone_number', user.phone_number),
-        delivery_address=data.get('delivery_address', ''),
-        latitude=data.get('latitude'),
-        longitude=data.get('longitude'),
-        notes=data.get('notes', ''),
-        status='pending'
-    )
-    
-    total_amount = 0
-    # Create OrderItems
-    for item in items_data:
-        product_id = item.get('product_id')
-        quantity = int(item.get('quantity', 1))
-        product = get_object_or_404(Product, id=product_id)
+        print(f"DEBUG: Creating order for user {telegram_user_id}. Data: {data}")
         
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=product.price
+        if not telegram_user_id:
+            return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not items_data:
+            return Response({'error': 'items required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = get_object_or_404(UserProfile, telegram_user_id=telegram_user_id)
+        
+        # Create the Order
+        order = Order.objects.create(
+            user=user,
+            phone_number=data.get('phone_number', user.phone_number),
+            delivery_address=data.get('delivery_address', ''),
+            latitude=data.get('latitude'),
+            longitude=data.get('longitude'),
+            notes=data.get('notes', ''),
+            status='pending'
         )
-        total_amount += product.price * quantity
         
-    order.total_amount = total_amount
-    order.save()
-    
-    serializer = OrderSerializer(order)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+        total_amount = Decimal('0')
+        # Create OrderItems
+        for item in items_data:
+            product_id = item.get('product_id')
+            quantity = int(item.get('quantity', 1))
+            product = get_object_or_404(Product, id=product_id)
+            
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity,
+                price=product.price
+            )
+            total_amount += product.price * quantity
+            
+        order.total_amount = total_amount
+        order.save()
+        
+        serializer = OrderSerializer(order)
+        print(f"DEBUG: Order #{order.id} created successfully.")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        print(f"ERROR in create_order: {str(e)}")
+        traceback.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
