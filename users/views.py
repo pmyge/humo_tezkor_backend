@@ -157,40 +157,35 @@ def phone_verify(request):
         print(f"DEBUG: Rejected invalid or fallback telegram_user_id in phone_verify: {telegram_user_id}")
         return Response({'error': 'Valid Telegram ID required. Please restart bot.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # If ID is 0, we can't search by ID, so we skip to username/phone lookup
-    user = None
+    # Strategy: Explicitly use update_or_create by telegram_user_id if valid
     if telegram_user_id and int(telegram_user_id) > 0:
-        user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
-    
-    if not user and data.get('username'):
-        # Fallback 1: Search by username (helps link anonymous Mini App sessions to Bot sessions)
-        user = UserProfile.objects.filter(username=data['username']).first()
-        if user:
-            print(f"DEBUG: Found user by username {data['username']}. Linking.")
-
-    if user:
-        print(f"DEBUG: Found user by ID/Username. Updating phone.")
+        user, created = UserProfile.objects.update_or_create(
+            telegram_user_id=telegram_user_id,
+            defaults={
+                'phone_number': phone_number,
+                'first_name': data.get('first_name') or 'User',
+                'last_name': data.get('last_name', ''),
+                'username': data.get('username') or f"user_{telegram_user_id}"
+            }
+        )
+        print(f"DEBUG: update_or_create result for ID {telegram_user_id}: created={created}")
     else:
-        # Fallback 2: Search for record by phone
+        # Fallback for ID=0 (should be rare now with our Bot URL update)
         user = UserProfile.objects.filter(phone_number=phone_number).first()
+        if not user and data.get('username'):
+             user = UserProfile.objects.filter(username=data['username']).first()
         
         if user:
-            # If user exists by phone and we have a valid ID now, link it
-            if telegram_user_id and int(telegram_user_id) > 0 and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
-                print(f"DEBUG: Linking existing phone record {phone_number} to ID {telegram_user_id}")
-                user.telegram_user_id = telegram_user_id
-            else:
-                print(f"DEBUG: Found user by phone {phone_number}. Updating.")
+            user.phone_number = phone_number
+            if data.get('first_name'): user.first_name = data['first_name']
+            user.save()
+            print(f"DEBUG: Found and updated user for phone registration without ID: {user.username}")
         else:
-            # Truly new user or missing ID. 
-            print(f"DEBUG: Creating user for phone {phone_number} (ID: {telegram_user_id})")
+            print(f"DEBUG: Creating new user for phone registration without ID: {phone_number}")
             user = UserProfile.objects.create(
-                telegram_user_id=telegram_user_id if (telegram_user_id and int(telegram_user_id) > 0) else None,
-                username=data.get('username') or (f"user_{telegram_user_id}" if (telegram_user_id and int(telegram_user_id) > 0) else f"phone_{phone_number.replace('+', '')}"),
-                first_name=data.get('first_name') or 'User',
-                last_name=data.get('last_name', ''),
                 phone_number=phone_number,
-                is_staff=False
+                username=data.get('username') or f"phone_{phone_number.replace('+', '')}",
+                first_name=data.get('first_name') or 'User'
             )
 
     # 4. Final Updates
