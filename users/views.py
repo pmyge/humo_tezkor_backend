@@ -51,8 +51,15 @@ def telegram_login(request):
         user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
         
         if not user:
-            print(f"DEBUG: User {telegram_user_id} not found in telegram_login. Returning 404.")
-            return Response({'error': 'User not registered'}, status=status.HTTP_404_NOT_FOUND)
+            print(f"DEBUG: User {telegram_user_id} not found in telegram_login. Returning dummy success for bot compatibility.")
+            # Return a dummy object that looks like a user to satisfy the old bot code
+            return Response({
+                'telegram_user_id': telegram_user_id,
+                'username': data.get('username') or f"user_{telegram_user_id}",
+                'first_name': data.get('first_name') or '',
+                'language': 'uz',
+                'is_registered': False # Flag for future use
+            }, status=status.HTTP_200_OK)
         
         created = False
     
@@ -72,8 +79,14 @@ def get_user_info(request):
     user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
     if not user:
-        print(f"DEBUG: User {telegram_user_id} not found in get_user_info. Returning 404.")
-        return Response({'error': 'User not registered'}, status=status.HTTP_404_NOT_FOUND)
+        print(f"DEBUG: User {telegram_user_id} not found in get_user_info. Returning dummy success.")
+        return Response({
+            'telegram_user_id': telegram_user_id,
+            'first_name': 'Guest',
+            'phone_number': '',
+            'language': 'uz',
+            'is_registered': False
+        }, status=status.HTTP_200_OK)
     
     created = False
     
