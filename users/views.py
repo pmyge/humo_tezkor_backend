@@ -11,6 +11,14 @@ from .serializers import (
 )
 
 
+def is_valid_telegram_id(tid):
+    """Check if the provided Telegram ID is real and not a frontend fallback"""
+    try:
+        val = int(tid)
+        return val < 9000000000
+    except (ValueError, TypeError):
+        return False
+
 @api_view(['POST'])
 def telegram_login(request):
     """Login or register user via Telegram"""
@@ -47,8 +55,9 @@ def get_user_info(request):
     """Get or update user info by telegram_user_id"""
     telegram_user_id = request.query_params.get('telegram_user_id') or request.data.get('telegram_user_id')
     
-    if not telegram_user_id:
-        return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not is_valid_telegram_id(telegram_user_id):
+        print(f"DEBUG: Rejected invalid or fallback telegram_user_id in get_user_info: {telegram_user_id}")
+        return Response({'error': 'Valid Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
     
     # First, try to get or create the user WITHOUT the staff filter to avoid IntegrityErrors
     user, created = UserProfile.objects.get_or_create(
@@ -124,10 +133,9 @@ def phone_verify(request):
     phone_number = data['phone_number']
 
     # 1. Primary Check: Valid Telegram User ID provided?
-    # Reject derived fallback IDs (>= 9,000,000,000)
-    if not telegram_user_id or int(telegram_user_id) >= 9000000000:
-        print(f"DEBUG: Rejected invalid or fallback telegram_user_id: {telegram_user_id}")
-        return Response({'error': 'Valid Telegram ID required. Please open via official bot.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not is_valid_telegram_id(telegram_user_id):
+        print(f"DEBUG: Rejected invalid or fallback telegram_user_id in phone_verify: {telegram_user_id}")
+        return Response({'error': 'Valid Telegram ID required. Please restart bot.'}, status=status.HTTP_400_BAD_REQUEST)
 
     user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
