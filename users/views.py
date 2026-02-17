@@ -66,9 +66,9 @@ def telegram_login(request):
     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'PATCH'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def get_user_info(request):
-    """Get or update user info by telegram_user_id"""
+    """Get, update or delete user info by telegram_user_id"""
     telegram_user_id = request.query_params.get('telegram_user_id') or request.data.get('telegram_user_id')
     
     if not is_valid_telegram_id(telegram_user_id):
@@ -78,6 +78,13 @@ def get_user_info(request):
     # First, try to get the user
     user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
+    if request.method == 'DELETE':
+        if user:
+            print(f"DEBUG: Deleting user {telegram_user_id} account.")
+            user.delete()
+            return Response({'message': 'Account deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
     if not user:
         print(f"DEBUG: User {telegram_user_id} not found in get_user_info. Returning dummy success.")
         return Response({
