@@ -123,43 +123,47 @@ def phone_verify(request):
     telegram_user_id = data['telegram_user_id']
     phone_number = data['phone_number']
 
-    # 1. Try to find user by telegram_user_id (Primary Identity)
-    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
-    
-    # 2. If not found by ID, maybe check if a user with this phone ALREADY exists
-    # to avoid creating duplicate accounts for the same person if they use different test IDs.
-    if not user:
-        user = UserProfile.objects.filter(phone_number=phone_number).first()
+    # 1. Primary Check: Valid Telegram User ID provided?
+    if telegram_user_id:
+        user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
         if user:
-            print(f"DEBUG: Found user by phone {phone_number} instead of ID {telegram_user_id}. Linking ID.")
-            user.telegram_user_id = telegram_user_id
-    
-    # 3. Still not found? Create new one.
-    if not user:
-        user = UserProfile.objects.create(
-            telegram_user_id=telegram_user_id,
-            username=f"user_{telegram_user_id}",
-            first_name=data.get('first_name') or 'User',
-            last_name=data.get('last_name', ''),
-            phone_number=phone_number,
-            is_staff=False
-        )
+            print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
+        else:
+            # Maybe this is an existing user who just got their Telegram ID?
+            # Check if this phone number is already registered to someone without an ID.
+            user = UserProfile.objects.filter(phone_number=phone_number, telegram_user_id__isnull=True).first()
+            if user:
+                print(f"DEBUG: Found orphaned phone {phone_number}. Assigning ID {telegram_user_id}.")
+                user.telegram_user_id = telegram_user_id
+            else:
+                print(f"DEBUG: No user found for ID {telegram_user_id} or orphaned phone. Creating new.")
+                user = UserProfile.objects.create(
+                    telegram_user_id=telegram_user_id,
+                    username=f"user_{telegram_user_id}",
+                    first_name=data.get('first_name') or 'User',
+                    last_name=data.get('last_name', ''),
+                    phone_number=phone_number,
+                    is_staff=False
+                )
     else:
-        # Update existing user
-        user.phone_number = phone_number
-        if 'first_name' in data and data['first_name'] not in ['Admin', 'User', 'Mehmon', 'Гость', '', None]:
-            user.first_name = data['first_name']
-        if 'last_name' in data:
-            user.last_name = data['last_name']
-        if 'username' in data and (user.username.startswith('user_') or user.username == ''):
-            user.username = data['username']
-        user.save()
+        # This shouldn't happen with the new frontend guard, but just in case
+        return Response({'error': 'Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 4. Final Updates
+    user.phone_number = phone_number
+    if 'first_name' in data and data['first_name'] not in ['Admin', 'User', 'Mehmon', 'Гость', '', None]:
+        user.first_name = data['first_name']
+    if 'last_name' in data:
+        user.last_name = data['last_name']
+    if 'username' in data and (user.username.startswith('user_') or user.username == ''):
+        user.username = data['username']
+    user.save()
 
     # Protect staff accounts
     if user.is_staff:
         return Response({'error': 'Admin accounts cannot be managed via Mini App'}, status=status.HTTP_403_FORBIDDEN)
     
-    print(f"DEBUG: phone_verify saved user: {user.telegram_user_id}, {user.first_name}, {user.username}, {user.phone_number}")
+    print(f"DEBUG: phone_verify completed for user: {user.telegram_user_id}, {user.first_name}, {user.username}, {user.phone_number}")
     return Response(UserSerializer(user).data)
 @api_view(['PATCH'])
 def change_language(request):
