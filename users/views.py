@@ -30,6 +30,10 @@ def telegram_login(request):
     data = serializer.validated_data
     telegram_user_id = data['telegram_user_id']
     
+    if not is_valid_telegram_id(telegram_user_id):
+        print(f"DEBUG: Rejected invalid telegram_user_id in telegram_login: {telegram_user_id}")
+        return Response({'error': 'Valid Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
+
     # Get or create user
     user, created = UserProfile.objects.get_or_create(
         telegram_user_id=telegram_user_id,
