@@ -11,34 +11,40 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'phone_number', 'status', 'total_amount', 'latitude', 'longitude', 'created_at')
+    list_display = ('id', 'display_user', 'phone_number', 'status', 'total_amount', 'created_at')
     list_filter = ('status', 'created_at')
-    search_fields = ('user__first_name', 'user__last_name', 'user__phone_number', 'phone_number')
-    readonly_fields = ('created_at', 'updated_at')
+    search_fields = ('user__first_name', 'user__username', 'phone_number', 'id')
+    readonly_fields = ('id', 'created_at', 'updated_at')
     inlines = [OrderItemInline]
-    actions = ['confirm_orders', 'cancel_orders']
+    actions = ['confirm_orders', 'mark_delivered']
+    
+    @admin.display(description='User')
+    def display_user(self, obj):
+        return str(obj.user)
+
+    @admin.action(description='Buyurtmani tasdiqlash')
+    def confirm_orders(self, request, queryset):
+        rows_updated = queryset.update(status='active')
+        self.message_user(request, f"{rows_updated} ta buyurtma tasdiqlandi.")
+
+    @admin.action(description='Berdim (O\'chirish)')
+    def mark_delivered(self, request, queryset):
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(request, f"{count} ta buyurtma o'chirildi (Berildi).")
     
     fieldsets = (
-        ('User Info', {
-            'fields': ('user', 'phone_number')
+        ('Info', {
+            'fields': ('id', 'user', 'phone_number', 'status')
         }),
-        ('Order Details', {
-            'fields': ('status', 'total_amount', 'delivery_address', 'latitude', 'longitude', 'notes')
+        ('Details', {
+            'fields': ('total_amount', 'delivery_address', 'latitude', 'longitude', 'notes')
         }),
-        ('Timestamps', {
+        ('Time', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
         }),
     )
 
-    @admin.action(description='Tanlangan buyurtmalarni tasdiqlash')
-    def confirm_orders(self, request, queryset):
-        queryset.update(status='active')
-
-    @admin.action(description='Tanlangan buyurtmalarni bekor qilish')
-    def cancel_orders(self, request, queryset):
-        queryset.update(status='canceled')
-    
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
 
