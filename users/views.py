@@ -99,6 +99,10 @@ def get_user_info(request):
             
         if 'language' in request.data:
             user.language = request.data['language']
+        
+        if 'phone_number' in request.data:
+            user.phone_number = request.data['phone_number']
+            
         user.save()
         print(f"DEBUG: User updated: {user.first_name}, {user.username}, {user.phone_number}")
         
