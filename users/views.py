@@ -34,22 +34,37 @@ def telegram_login(request):
         print(f"DEBUG: Rejected invalid telegram_user_id in telegram_login: {telegram_user_id}")
         return Response({'error': 'Valid Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Get or create user
-    user, created = UserProfile.objects.get_or_create(
-        telegram_user_id=telegram_user_id,
-        defaults={
-            'username': data.get('username', ''),
-            'first_name': data.get('first_name', ''),
-            'last_name': data.get('last_name', ''),
-        }
-    )
+    # Try to find user by telegram_user_id first
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
-    # If user exists, update info
-    if not created:
-        user.username = data.get('username', user.username)
-        user.first_name = data.get('first_name', user.first_name)
-        user.last_name = data.get('last_name', user.last_name)
+    if user:
+        # Update existing user data
+        if data.get('username'): user.username = data['username']
+        if data.get('first_name'): user.first_name = data['first_name']
+        if data.get('last_name'): user.last_name = data['last_name']
         user.save()
+        created = False
+    else:
+        # Try to find by username (bot often uses telegram_{id} or actual username)
+        username = data.get('username')
+        user = UserProfile.objects.filter(username=username).first() if username else None
+        
+        if user and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
+            print(f"DEBUG: Found orphaned record by username {username}. Linking to ID {telegram_user_id}")
+            user.telegram_user_id = telegram_user_id
+            if data.get('first_name'): user.first_name = data['first_name']
+            if data.get('last_name'): user.last_name = data['last_name']
+            user.save()
+            created = False
+        else:
+            # Create new
+            user = UserProfile.objects.create(
+                telegram_user_id=telegram_user_id,
+                username=username or f"user_{telegram_user_id}",
+                first_name=data.get('first_name', ''),
+                last_name=data.get('last_name', '')
+            )
+            created = True
     
     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
@@ -146,14 +161,13 @@ def phone_verify(request):
     if user:
         print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
     else:
-        # Check for orphaned record by phone (record created by bot but missing ID)
-        # OR any record that has this phone but no Telegram ID.
-        user = UserProfile.objects.filter(phone_number=phone_number, telegram_user_id__isnull=True).first()
-        if user:
+        # Search for orphaned record by phone (record created by bot but missing ID or has fake ID)
+        user = UserProfile.objects.filter(phone_number=phone_number).first()
+        if user and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
             print(f"DEBUG: Linking existing phone record {phone_number} to ID {telegram_user_id}")
             user.telegram_user_id = telegram_user_id
         else:
-            print(f"DEBUG: No user found for ID {telegram_user_id} or orphaned phone. Creating new.")
+            print(f"DEBUG: Truly new user or ID mismatch. Creating.")
             user = UserProfile.objects.create(
                 telegram_user_id=telegram_user_id,
                 username=f"user_{telegram_user_id}",
