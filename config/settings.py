@@ -185,28 +185,25 @@ CORS_ALLOW_CREDENTIALS = True
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
     CSRF_TRUSTED_ORIGINS = [
-        "https://*.loca.lt",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
     ]
 else:
     # In Production (Render), we need to be careful but accessible
     CORS_ALLOWED_ORIGINS = [
         "https://frontend-gold-delta-10.vercel.app",
         "https://punyo-market-backend.onrender.com",
-        "https://*.loca.lt", # Allow tunnel for testing
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://frontend-gold-delta-10.vercel.app",
         "https://punyo-market-backend.onrender.com",
-        "https://*.loca.lt", # Allow tunnel for testing
     ]
 
 from corsheaders.defaults import default_headers
 
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'bypass-tunnel-reminder',
-]
+CORS_ALLOW_HEADERS = list(default_headers)
 
 # Import Jazzmin settings
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
