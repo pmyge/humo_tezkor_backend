@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 def health_check(request):
+    print("DEBUG: Root health check hit!")
     return HttpResponse("OK")
 
 urlpatterns = [
