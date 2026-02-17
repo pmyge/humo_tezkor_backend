@@ -157,15 +157,21 @@ def phone_verify(request):
         print(f"DEBUG: Rejected invalid or fallback telegram_user_id in phone_verify: {telegram_user_id}")
         return Response({'error': 'Valid Telegram ID required. Please restart bot.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # If ID is 0, we can't search by ID, so we skip to phone lookup
+    # If ID is 0, we can't search by ID, so we skip to username/phone lookup
     user = None
     if telegram_user_id and int(telegram_user_id) > 0:
         user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
+    if not user and data.get('username'):
+        # Fallback 1: Search by username (helps link anonymous Mini App sessions to Bot sessions)
+        user = UserProfile.objects.filter(username=data['username']).first()
+        if user:
+            print(f"DEBUG: Found user by username {data['username']}. Linking.")
+
     if user:
-        print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
+        print(f"DEBUG: Found user by ID/Username. Updating phone.")
     else:
-        # Search for record by phone
+        # Fallback 2: Search for record by phone
         user = UserProfile.objects.filter(phone_number=phone_number).first()
         
         if user:
@@ -180,7 +186,7 @@ def phone_verify(request):
             print(f"DEBUG: Creating user for phone {phone_number} (ID: {telegram_user_id})")
             user = UserProfile.objects.create(
                 telegram_user_id=telegram_user_id if (telegram_user_id and int(telegram_user_id) > 0) else None,
-                username=f"user_{telegram_user_id}" if (telegram_user_id and int(telegram_user_id) > 0) else f"phone_{phone_number.replace('+', '')}",
+                username=data.get('username') or (f"user_{telegram_user_id}" if (telegram_user_id and int(telegram_user_id) > 0) else f"phone_{phone_number.replace('+', '')}"),
                 first_name=data.get('first_name') or 'User',
                 last_name=data.get('last_name', ''),
                 phone_number=phone_number,
