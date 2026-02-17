@@ -15,17 +15,17 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'first_name', 'phone_number', 'telegram_user_id', 'created_at', 'last_login')
+    list_display = ('id', 'first_name', 'phone_number', 'created_at', 'last_login')
     list_filter = ('created_at', 'last_login')
-    search_fields = ('id', 'first_name', 'phone_number', 'username', 'telegram_user_id')
+    search_fields = ('id', 'first_name', 'phone_number', 'username')
     readonly_fields = ('id', 'created_at', 'updated_at', 'last_login')
     
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_staff=False)
     
     fieldsets = (
-        ('Telegram Info', {
-            'fields': ('telegram_user_id', 'username', 'first_name', 'last_login')
+        ('User Info', {
+            'fields': ('username', 'first_name', 'last_login')
         }),
         ('Contact', {
             'fields': ('phone_number',)

@@ -24,7 +24,7 @@ class UserProfile(AbstractUser):
         name = f"{self.first_name} {self.last_name}".strip() or self.username
         if self.is_staff:
             return f"{name} (ADMIN)"
-        return f"{name} ({self.phone_number or 'No phone'}) - {self.telegram_user_id}"
+        return f"{self.id}. {name} ({self.phone_number or 'No phone'})"
 
 
 class Customer(UserProfile):
@@ -37,4 +37,4 @@ class Customer(UserProfile):
 
     def __str__(self):
         name = f"{self.first_name} {self.last_name}".strip() or self.username
-        return f"{name} ({self.phone_number or 'No phone'}) - {self.telegram_user_id}"
+        return f"{self.id}. {name} ({self.phone_number or 'No phone'})"
