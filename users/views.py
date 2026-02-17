@@ -15,7 +15,8 @@ def is_valid_telegram_id(tid):
     """Check if the provided Telegram ID is real and not a frontend fallback"""
     try:
         val = int(tid)
-        return val < 9000000000
+        # Allow 0 as a signifier for 'missing identity' during registration
+        return val == 0 or val < 9000000000
     except (ValueError, TypeError):
         return False
 
@@ -156,21 +157,30 @@ def phone_verify(request):
         print(f"DEBUG: Rejected invalid or fallback telegram_user_id in phone_verify: {telegram_user_id}")
         return Response({'error': 'Valid Telegram ID required. Please restart bot.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
+    # If ID is 0, we can't search by ID, so we skip to phone lookup
+    user = None
+    if telegram_user_id and int(telegram_user_id) > 0:
+        user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
     
     if user:
         print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
     else:
-        # Search for orphaned record by phone (record created by bot but missing ID or has fake ID)
+        # Search for record by phone
         user = UserProfile.objects.filter(phone_number=phone_number).first()
-        if user and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
-            print(f"DEBUG: Linking existing phone record {phone_number} to ID {telegram_user_id}")
-            user.telegram_user_id = telegram_user_id
+        
+        if user:
+            # If user exists by phone and we have a valid ID now, link it
+            if telegram_user_id and int(telegram_user_id) > 0 and (not user.telegram_user_id or user.telegram_user_id >= 9000000000):
+                print(f"DEBUG: Linking existing phone record {phone_number} to ID {telegram_user_id}")
+                user.telegram_user_id = telegram_user_id
+            else:
+                print(f"DEBUG: Found user by phone {phone_number}. Updating.")
         else:
-            print(f"DEBUG: Truly new user or ID mismatch. Creating.")
+            # Truly new user or missing ID. 
+            print(f"DEBUG: Creating user for phone {phone_number} (ID: {telegram_user_id})")
             user = UserProfile.objects.create(
-                telegram_user_id=telegram_user_id,
-                username=f"user_{telegram_user_id}",
+                telegram_user_id=telegram_user_id if (telegram_user_id and int(telegram_user_id) > 0) else None,
+                username=f"user_{telegram_user_id}" if (telegram_user_id and int(telegram_user_id) > 0) else f"phone_{phone_number.replace('+', '')}",
                 first_name=data.get('first_name') or 'User',
                 last_name=data.get('last_name', ''),
                 phone_number=phone_number,
