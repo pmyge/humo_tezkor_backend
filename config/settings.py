@@ -32,11 +32,12 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "0.0.0.0", # Explicitly allow internal bind address
     "punyo-api-99.loca.lt",
     "punyo-front-99.loca.lt",
     ".loca.lt",
     ".onrender.com",
-    "*", # Robustness for Render health checks
+    "*", # Allow all for Render internal health checks
 ]
 
 USE_X_FORWARDED_HOST = True
