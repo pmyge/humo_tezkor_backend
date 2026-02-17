@@ -124,30 +124,32 @@ def phone_verify(request):
     phone_number = data['phone_number']
 
     # 1. Primary Check: Valid Telegram User ID provided?
-    if telegram_user_id:
-        user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
-        if user:
-            print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
-        else:
-            # Maybe this is an existing user who just got their Telegram ID?
-            # Check if this phone number is already registered to someone without an ID.
-            user = UserProfile.objects.filter(phone_number=phone_number, telegram_user_id__isnull=True).first()
-            if user:
-                print(f"DEBUG: Found orphaned phone {phone_number}. Assigning ID {telegram_user_id}.")
-                user.telegram_user_id = telegram_user_id
-            else:
-                print(f"DEBUG: No user found for ID {telegram_user_id} or orphaned phone. Creating new.")
-                user = UserProfile.objects.create(
-                    telegram_user_id=telegram_user_id,
-                    username=f"user_{telegram_user_id}",
-                    first_name=data.get('first_name') or 'User',
-                    last_name=data.get('last_name', ''),
-                    phone_number=phone_number,
-                    is_staff=False
-                )
+    # Reject derived fallback IDs (>= 9,000,000,000)
+    if not telegram_user_id or int(telegram_user_id) >= 9000000000:
+        print(f"DEBUG: Rejected invalid or fallback telegram_user_id: {telegram_user_id}")
+        return Response({'error': 'Valid Telegram ID required. Please open via official bot.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
+    
+    if user:
+        print(f"DEBUG: Found user by ID {telegram_user_id}. Updating phone.")
     else:
-        # This shouldn't happen with the new frontend guard, but just in case
-        return Response({'error': 'Telegram ID required'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check for orphaned record by phone (record created by bot but missing ID)
+        # OR any record that has this phone but no Telegram ID.
+        user = UserProfile.objects.filter(phone_number=phone_number, telegram_user_id__isnull=True).first()
+        if user:
+            print(f"DEBUG: Linking existing phone record {phone_number} to ID {telegram_user_id}")
+            user.telegram_user_id = telegram_user_id
+        else:
+            print(f"DEBUG: No user found for ID {telegram_user_id} or orphaned phone. Creating new.")
+            user = UserProfile.objects.create(
+                telegram_user_id=telegram_user_id,
+                username=f"user_{telegram_user_id}",
+                first_name=data.get('first_name') or 'User',
+                last_name=data.get('last_name', ''),
+                phone_number=phone_number,
+                is_staff=False
+            )
 
     # 4. Final Updates
     user.phone_number = phone_number
