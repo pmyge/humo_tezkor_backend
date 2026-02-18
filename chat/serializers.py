@@ -8,14 +8,15 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ChatMessage
-        fields = ['id', 'user', 'user_name', 'message', 'is_from_admin', 
+        fields = ['id', 'user', 'user_name', 'message', 'image', 'is_from_admin', 
                   'admin_user', 'admin_name', 'created_at', 'is_read']
         read_only_fields = ['id', 'created_at']
 
 
 class SendMessageSerializer(serializers.Serializer):
-    telegram_id = serializers.CharField(max_length=50)
-    message = serializers.CharField()
+    telegram_user_id = serializers.CharField(max_length=50)
+    message = serializers.CharField(required=False, allow_blank=True)
+    image = serializers.ImageField(required=False, allow_null=True)
 
 
 class AdminReplySerializer(serializers.Serializer):

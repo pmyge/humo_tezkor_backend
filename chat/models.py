@@ -26,6 +26,12 @@ class ChatMessage(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    image = models.ImageField(
+        upload_to='chat_images/',
+        null=True,
+        blank=True,
+        help_text="Optional image attached to the message"
+    )
 
     class Meta:
         verbose_name = 'Chat Message'

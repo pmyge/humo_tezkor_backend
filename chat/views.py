@@ -25,7 +25,7 @@ def get_messages(request):
 
 @api_view(['POST'])
 def send_message(request):
-    """User sends a message"""
+    """User sends a message (optionally with an image)"""
     serializer = SendMessageSerializer(data=request.data)
     
     if not serializer.is_valid():
@@ -34,10 +34,11 @@ def send_message(request):
     data = serializer.validated_data
     user = get_object_or_404(UserProfile, telegram_user_id=data['telegram_user_id'])
     
-    # Create message
+    # Create message with optional image
     message = ChatMessage.objects.create(
         user=user,
-        message=data['message'],
+        message=data.get('message', ''),
+        image=data.get('image'),
         is_from_admin=False
     )
     
