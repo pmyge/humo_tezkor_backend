@@ -13,7 +13,7 @@ class TelegramLoginSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 class PhoneVerifySerializer(serializers.Serializer):
-    telegram_user_id = serializers.BigIntegerField()
+    telegram_user_id = serializers.IntegerField()
     phone_number = serializers.CharField()
     first_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
