@@ -24,7 +24,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'description', 'is_broadcast', 'created_at', 'is_read']
+        fields = ['id', 'title', 'description', 'title_uz', 'title_ru', 'description_uz', 'description_ru', 'is_broadcast', 'created_at', 'is_read']
 
     def get_is_read(self, obj):
         telegram_user_id = self.context.get('telegram_user_id')
@@ -45,4 +45,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 class AboutSerializer(serializers.ModelSerializer):
     class Meta:
         model = About
-        fields = ['phone_number', 'email', 'address']
+        fields = ['phone_number', 'email', 'address', 'address_uz', 'address_ru']

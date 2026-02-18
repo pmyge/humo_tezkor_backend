@@ -37,14 +37,46 @@ class CustomerAdmin(admin.ModelAdmin):
     )
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_broadcast', 'created_at')
+    list_display = ('title_uz', 'is_broadcast', 'created_at')
     list_filter = ('is_broadcast', 'created_at')
-    search_fields = ('title', 'description')
+    search_fields = ('title_uz', 'title_ru', 'description_uz', 'description_ru')
     filter_horizontal = ('recipients',)
     
+    fieldsets = (
+        ('Uzbek Content', {
+            'fields': ('title_uz', 'description_uz')
+        }),
+        ('Russian Content', {
+            'fields': ('title_ru', 'description_ru')
+        }),
+        ('Settings', {
+            'fields': ('is_broadcast', 'recipients')
+        }),
+        ('Deprecated', {
+            'fields': ('title', 'description'),
+            'classes': ('collapse',)
+        }),
+    )
+
 @admin.register(About)
 class AboutAdmin(admin.ModelAdmin):
     list_display = ('phone_number', 'email', 'updated_at')
+    
+    fieldsets = (
+        ('Contact Info', {
+            'fields': ('phone_number', 'email')
+        }),
+        ('Location (Uzbek)', {
+            'fields': ('address_uz',)
+        }),
+        ('Location (Russian)', {
+            'fields': ('address_ru',)
+        }),
+        ('Deprecated', {
+            'fields': ('address',),
+            'classes': ('collapse',)
+        }),
+    )
 
     def has_add_permission(self, request):
         # Allow only one instance of About
