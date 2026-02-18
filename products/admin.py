@@ -19,12 +19,13 @@ class CategoryAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('General', {
-            'fields': ('name', 'name_ru', 'image')
+            'fields': ('name', 'name_ru', 'image', 'image_base64')
         }),
         ('Settings', {
             'fields': ('order', 'is_active')
         }),
     )
+    readonly_fields = ('image_base64',)
 
     class Media:
         js = ('products/admin_translate.js',)

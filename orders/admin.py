@@ -33,21 +33,24 @@ class OrderAdmin(admin.ModelAdmin):
     def get_categories_links(self, obj):
         # Unique list of category links from items
         categories = {}
+        # Prefetching in get_queryset ensures this is efficient
         for item in obj.items.all():
-            # Defensive check: ensure product and category exist
             if item.product and item.product.category:
                 categories[item.product.category_id] = item.product.category.name
         
+        if not categories:
+            return "-"
+            
         links = []
         for cat_id, cat_name in sorted(categories.items()):
             try:
                 url = reverse('admin:products_category_change', args=[cat_id])
                 links.append(format_html('<a href="{}">ID {} ({})</a>', url, cat_id, cat_name))
             except Exception:
-                # Fallback if URL cannot be reversed
                 links.append(format_html('ID {}', cat_id))
         
-        return format_html(", ".join(links)) or "-"
+        from django.utils.safestring import mark_safe
+        return mark_safe(", ".join(links))
 
     list_filter = ('status', 'created_at')
     # Removed potential problematic search fields
