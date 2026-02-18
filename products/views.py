@@ -33,3 +33,14 @@ def get_category_products(request, category_id):
     
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data)
+@extend_schema(
+    summary="Get all active products",
+    description="Returns list of all active products",
+    responses={200: ProductSerializer(many=True)}
+)
+@api_view(['GET'])
+def get_all_products(request):
+    """Get all active products"""
+    products = Product.objects.filter(is_active=True).order_by('order', 'name')
+    serializer = ProductSerializer(products, many=True, context={'request': request})
+    return Response(serializer.data)
