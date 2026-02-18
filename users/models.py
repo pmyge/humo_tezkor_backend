@@ -41,3 +41,30 @@ class Customer(UserProfile):
     def __str__(self):
         name = f"{self.first_name} {self.last_name}".strip() or self.username
         return f"{self.id}. {name} ({self.phone_number or 'No phone'})"
+
+
+class Notification(models.Model):
+    """System notification model"""
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    is_broadcast = models.BooleanField(default=False, help_text="If checked, all users will see this notification")
+    recipients = models.ManyToManyField(UserProfile, blank=True, related_name='notifications', help_text="Select specific users if not a broadcast")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Notification"
+        verbose_name_plural = "Notifications"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class NotificationRead(models.Model):
+    """Tracks which users have read which notifications"""
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    notification = models.ForeignKey(Notification, on_delete=models.CASCADE)
+    read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'notification')

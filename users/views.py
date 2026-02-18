@@ -237,3 +237,45 @@ def change_language(request):
     user.language = language
     user.save()
     return Response(UserSerializer(user).data)
+
+
+@api_view(['GET'])
+def get_notifications(request):
+    """Get active notifications for the user"""
+    telegram_user_id = request.query_params.get('telegram_user_id')
+    if not telegram_user_id:
+        return Response({'error': 'telegram_user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
+    if not user:
+        return Response([], status=status.HTTP_200_OK)
+        
+    from django.db.models import Q
+    from .serializers import NotificationSerializer
+    
+    # Notifications are either broadcast OR strictly for this user
+    notifications = Notification.objects.filter(
+        Q(is_broadcast=True) | Q(recipients=user)
+    ).distinct().order_by('-created_at')
+    
+    serializer = NotificationSerializer(notifications, many=True, context={'telegram_user_id': telegram_user_id})
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def mark_notification_as_read(request):
+    """Mark a specific notification as read by the user"""
+    telegram_user_id = request.data.get('telegram_user_id')
+    notification_id = request.data.get('notification_id')
+    
+    if not telegram_user_id or not notification_id:
+        return Response({'error': 'telegram_user_id and notification_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    user = UserProfile.objects.filter(telegram_user_id=telegram_user_id).first()
+    notification = get_object_or_404(Notification, id=notification_id)
+    
+    if user:
+        from .models import NotificationRead
+        NotificationRead.objects.get_or_create(user=user, notification=notification)
+        
+    return Response({'status': 'ok'})

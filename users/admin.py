@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Customer
+from .models import UserProfile, Customer, Notification
 
 
 @admin.register(UserProfile)
@@ -35,3 +35,12 @@ class CustomerAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_broadcast', 'created_at')
+    list_filter = ('is_broadcast', 'created_at')
+    search_fields = ('title', 'description')
+    filter_horizontal = ('recipients',)
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request)

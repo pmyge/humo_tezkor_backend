@@ -1,29 +1,21 @@
 from rest_framework import serializers
-from .models import UserProfile
+from .models import Notification, NotificationRead
 
+class NotificationSerializer(serializers.ModelSerializer):
+    is_read = serializers.SerializerMethodField()
 
-class UserSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
-    
     class Meta:
-        model = UserProfile
-        fields = ['id', 'telegram_user_id', 'username', 'first_name', 'last_name', 
-                  'full_name', 'phone_number', 'language', 'created_at']
-        read_only_fields = ['id', 'created_at']
-    
-    def get_full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip()
+        model = Notification
+        fields = ['id', 'title', 'description', 'created_at', 'is_broadcast', 'is_read']
 
-
-class TelegramLoginSerializer(serializers.Serializer):
-    telegram_user_id = serializers.IntegerField()
-    username = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-
-
-class PhoneVerifySerializer(serializers.Serializer):
-    telegram_user_id = serializers.IntegerField()
-    phone_number = serializers.CharField(max_length=20)
-    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    def get_is_read(self, obj):
+        user = self.context.get('request').user
+        if not user or user.is_anonymous:
+            # For Mini App, we usually pass telegram_user_id to the view, 
+            # so the view should handle the context or we check via telegram_user_id
+            telegram_user_id = self.context.get('telegram_user_id')
+            if telegram_user_id:
+                return NotificationRead.objects.filter(notification=obj, user__telegram_user_id=telegram_user_id).exists()
+            return False
+            
+        return NotificationRead.objects.filter(notification=obj, user=user).exists()
