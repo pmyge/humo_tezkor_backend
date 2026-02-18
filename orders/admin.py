@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
 from .models import Order, OrderItem
 
 class OrderItemInline(admin.TabularInline):
@@ -12,7 +14,7 @@ class OrderAdmin(admin.ModelAdmin):
     # Enhanced list_display to include products and categories
     list_display = (
         'id', 'user', 'phone_number', 'status', 
-        'total_amount', 'get_products', 'get_categories', 
+        'total_amount', 'get_products', 'get_categories_links', 
         'delivery_address', 'created_at'
     )
     list_select_related = ('user',)
@@ -26,10 +28,19 @@ class OrderAdmin(admin.ModelAdmin):
         return ", ".join([item.product.name for item in obj.items.all()])
 
     @admin.display(description='Kategoriya ID')
-    def get_categories(self, obj):
-        # Unique list of category IDs from items
-        cat_ids = {str(item.product.category_id) for item in obj.items.all() if item.product and item.product.category_id}
-        return ", ".join(sorted(cat_ids))
+    def get_categories_links(self, obj):
+        # Unique list of category links from items
+        categories = {}
+        for item in obj.items.all():
+            if item.product and item.product.category_id:
+                categories[item.product.category_id] = item.product.category.name
+        
+        links = []
+        for cat_id, cat_name in sorted(categories.items()):
+            url = reverse('admin:products_category_change', args=[cat_id])
+            links.append(format_html('<a href="{}">ID {} ({})</a>', url, cat_id, cat_name))
+        
+        return format_html(", ".join(links)) or "-"
 
     list_filter = ('status', 'created_at')
     # Removed potential problematic search fields
