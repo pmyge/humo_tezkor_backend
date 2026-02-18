@@ -25,20 +25,27 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description='Mahsulotlar')
     def get_products(self, obj):
-        return ", ".join([item.product.name for item in obj.items.all()])
+        # Safety check: ensure product exists
+        products = [item.product.name for item in obj.items.all() if item.product]
+        return ", ".join(products) or "-"
 
     @admin.display(description='Kategoriya ID')
     def get_categories_links(self, obj):
         # Unique list of category links from items
         categories = {}
         for item in obj.items.all():
-            if item.product and item.product.category_id:
+            # Defensive check: ensure product and category exist
+            if item.product and item.product.category:
                 categories[item.product.category_id] = item.product.category.name
         
         links = []
         for cat_id, cat_name in sorted(categories.items()):
-            url = reverse('admin:products_category_change', args=[cat_id])
-            links.append(format_html('<a href="{}">ID {} ({})</a>', url, cat_id, cat_name))
+            try:
+                url = reverse('admin:products_category_change', args=[cat_id])
+                links.append(format_html('<a href="{}">ID {} ({})</a>', url, cat_id, cat_name))
+            except Exception:
+                # Fallback if URL cannot be reversed
+                links.append(format_html('ID {}', cat_id))
         
         return format_html(", ".join(links)) or "-"
 
