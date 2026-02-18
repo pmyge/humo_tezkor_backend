@@ -4,7 +4,7 @@
     env: python
     buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
     healthCheckPath: /
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --log-level debug
     envVars:
       - key: DEBUG
         value: "False"

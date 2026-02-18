@@ -1,1 +1,1 @@
-﻿web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 60
+﻿web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --log-level debug
