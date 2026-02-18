@@ -209,3 +209,8 @@ CORS_ALLOW_HEADERS = list(default_headers)
 # Import Jazzmin settings
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
 
+JAZZMIN_SETTINGS["site_title"] = "HUMO TEZKOR"
+JAZZMIN_SETTINGS["site_header"] = "HUMO TEZKOR"
+JAZZMIN_SETTINGS["welcome_sign"] = "HUMO TEZKOR Admin Paneliga xush kelibsiz"
+JAZZMIN_SETTINGS["copyright"] = "HUMO TEZKOR"
+
