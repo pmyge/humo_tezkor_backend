@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'telegram_user_id', 'username', 'first_name', 'last_name', 'phone_number', 'language', 'is_staff']
 
 class TelegramLoginSerializer(serializers.Serializer):
-    telegram_user_id = serializers.BigIntegerField()
+    telegram_user_id = serializers.IntegerField()
     username = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     first_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
