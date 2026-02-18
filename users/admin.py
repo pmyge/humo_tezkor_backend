@@ -78,12 +78,9 @@ class AboutAdmin(admin.ModelAdmin):
         }),
     )
 
+    # Allowed more control over About instances as requested
     def has_add_permission(self, request):
-        # Allow only one instance of About
-        if self.model.objects.count() >= 1:
-            return False
         return super().has_add_permission(request)
 
     def has_delete_permission(self, request, obj=None):
-        # Disable deletion to keep the single record
-        return False
+        return super().has_delete_permission(request, obj)
