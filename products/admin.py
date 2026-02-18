@@ -38,11 +38,11 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'name_ru', 'description')
     list_editable = ('price', 'order', 'is_active')
     ordering = ('category', 'order', 'name')
-    readonly_fields = ('id',)
+    readonly_fields = ('id', 'image_base64')
     
     fieldsets = (
         ('General', {
-            'fields': ('category', 'name', 'name_ru', 'image', 'price')
+            'fields': ('category', 'name', 'name_ru', 'image', 'image_base64', 'price')
         }),
         ('Description', {
             'fields': ('description', 'description_ru'),
