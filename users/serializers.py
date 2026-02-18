@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserProfile, Notification, NotificationRead
+from .models import UserProfile, Notification, NotificationRead, About
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,3 +40,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         if user:
             return NotificationRead.objects.filter(user=user, notification=obj).exists()
         return False
+
+
+class AboutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = About
+        fields = ['phone_number', 'email', 'address']
