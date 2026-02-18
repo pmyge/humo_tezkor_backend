@@ -10,7 +10,7 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     # Minimal list_display to ensure stability
-    list_display = ('id', 'user', 'phone_number', 'status', 'total_amount', 'created_at')
+    list_display = ('id', 'user', 'phone_number', 'status', 'total_amount', 'delivery_address', 'created_at')
     list_select_related = ('user',)
     list_filter = ('status', 'created_at')
     # Removed potential problematic search fields
