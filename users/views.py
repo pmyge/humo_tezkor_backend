@@ -278,3 +278,18 @@ def mark_notification_as_read(request):
         NotificationRead.objects.get_or_create(user=user, notification=notification)
         
     return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+def get_about(request):
+    """Get store information"""
+    from .serializers import AboutSerializer
+    about = About.objects.first()
+    if not about:
+        return Response({
+            'phone_number': '+998XXXXXXXXX',
+            'email': 'shop@example.com',
+            'address': 'Tashkent, Uzbekistan'
+        })
+    serializer = AboutSerializer(about)
+    return Response(serializer.data)

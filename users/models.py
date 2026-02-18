@@ -68,3 +68,18 @@ class NotificationRead(models.Model):
 
     class Meta:
         unique_together = ('user', 'notification')
+
+
+class About(models.Model):
+    """Shop information model"""
+    phone_number = models.CharField(max_length=20, help_text="Store contact phone number")
+    email = models.EmailField(help_text="Store contact email")
+    address = models.TextField(help_text="Store physical address (will be used for Yandex Maps lookup)")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "About Us"
+        verbose_name_plural = "About Us"
+
+    def __str__(self):
+        return "Shop Information"

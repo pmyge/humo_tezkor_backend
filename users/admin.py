@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Customer, Notification
+from .models import UserProfile, Customer, Notification, About
 
 
 @admin.register(UserProfile)
@@ -42,5 +42,16 @@ class NotificationAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description')
     filter_horizontal = ('recipients',)
     
-    def get_queryset(self, request):
-        return super().get_queryset(request)
+@admin.register(About)
+class AboutAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'email', 'updated_at')
+
+    def has_add_permission(self, request):
+        # Allow only one instance of About
+        if self.model.objects.count() >= 1:
+            return False
+        return super().has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        # Disable deletion to keep the single record
+        return False
