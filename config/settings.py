@@ -174,8 +174,8 @@ REST_FRAMEWORK = {
 
 # drf-spectacular settings (Swagger/OpenAPI)
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Punyo Market API',
-    'DESCRIPTION': 'Telegram bot backend API for Punyo Market e-commerce',
+    'TITLE': 'HUMO TEZKOR API',
+    'DESCRIPTION': 'Telegram bot backend API for HUMO TEZKOR e-commerce',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': '/api/',
