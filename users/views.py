@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
-from .models import UserProfile
+from .models import UserProfile, Notification, NotificationRead
 from .serializers import (
     UserSerializer, 
     TelegramLoginSerializer, 
@@ -275,7 +275,6 @@ def mark_notification_as_read(request):
     notification = get_object_or_404(Notification, id=notification_id)
     
     if user:
-        from .models import NotificationRead
         NotificationRead.objects.get_or_create(user=user, notification=notification)
         
     return Response({'status': 'ok'})
