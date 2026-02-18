@@ -9,9 +9,28 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    # Minimal list_display to ensure stability
-    list_display = ('id', 'user', 'phone_number', 'status', 'total_amount', 'delivery_address', 'created_at')
+    # Enhanced list_display to include products and categories
+    list_display = (
+        'id', 'user', 'phone_number', 'status', 
+        'total_amount', 'get_products', 'get_categories', 
+        'delivery_address', 'created_at'
+    )
     list_select_related = ('user',)
+    
+    def get_queryset(self, request):
+        # Optimization: Prefetch items and their related products and categories
+        return super().get_queryset(request).prefetch_related('items__product__category')
+
+    @admin.display(description='Mahsulotlar')
+    def get_products(self, obj):
+        return ", ".join([item.product.name for item in obj.items.all()])
+
+    @admin.display(description='Kategoriya ID')
+    def get_categories(self, obj):
+        # Unique list of category IDs from items
+        cat_ids = {str(item.product.category_id) for item in obj.items.all() if item.product and item.product.category_id}
+        return ", ".join(sorted(cat_ids))
+
     list_filter = ('status', 'created_at')
     # Removed potential problematic search fields
     search_fields = ('phone_number', 'id')
