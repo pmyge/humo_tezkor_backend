@@ -21,10 +21,13 @@ class UserProfile(AbstractUser):
         ordering = ['-created_at']
     
     def __str__(self):
-        name = f"{self.first_name} {self.last_name}".strip() or self.username
-        if self.is_staff:
-            return f"{name} (ADMIN)"
-        return f"{self.id}. {name} ({self.phone_number or 'No phone'})"
+        try:
+            name = f"{self.first_name} {self.last_name}".strip() or self.username or f"User {self.id}"
+            if self.is_staff:
+                return f"{name} (ADMIN)"
+            return f"{self.id or '?'}. {name} ({self.phone_number or 'No phone'})"
+        except Exception:
+            return f"User {self.id or 'Unknown'}"
 
 
 class Customer(UserProfile):

@@ -29,7 +29,10 @@ class Order(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Order #{self.id} - {self.user.first_name if self.user else 'Unknown'} ({self.status})"
+        user_name = "Unknown"
+        if self.user:
+            user_name = f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        return f"Order #{self.id or 'New'} - {user_name} ({self.status})"
 
 
 class OrderItem(models.Model):
