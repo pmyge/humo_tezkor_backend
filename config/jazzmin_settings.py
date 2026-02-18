@@ -32,7 +32,7 @@ JAZZMIN_SETTINGS = {
     # Links to put along the top menu
     "topmenu_links": [
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "API Docs", "url": "/api/docs/", "new_window": True},
+        {"name": "API Docs", "url": "/swagger/", "new_window": True},
         {"model": "users.UserProfile"},
     ],
     

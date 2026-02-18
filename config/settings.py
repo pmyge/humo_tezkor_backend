@@ -152,8 +152,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles' # For production collection
 
-# WhiteNoise storage
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise storage - Use non-manifest storage during transition to avoid 500s on missing assets
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
@@ -180,6 +181,9 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': '/api/',
 }
+
+# Documentation URLs for Jazzmin
+JAZZMIN_SETTINGS_DOCS_URL = "/swagger/"
 
 CORS_ALLOW_CREDENTIALS = True
 

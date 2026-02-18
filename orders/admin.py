@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.urls import reverse
 from .models import Order, OrderItem
 
@@ -49,7 +50,6 @@ class OrderAdmin(admin.ModelAdmin):
             except Exception:
                 links.append(format_html('ID {}', cat_id))
         
-        from django.utils.safestring import mark_safe
         return mark_safe(", ".join(links))
 
     list_filter = ('status', 'created_at')
