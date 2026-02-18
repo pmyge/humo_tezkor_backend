@@ -1,3 +1,6 @@
+from django.contrib import admin
+from .models import Category, Product
+
 class ProductInline(admin.TabularInline):
     model = Product
     extra = 0
