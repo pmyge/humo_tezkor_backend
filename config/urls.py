@@ -7,9 +7,6 @@ from django.http import HttpResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 def health_check(request):
-    host = request.get_host()
-    remote_addr = request.META.get('REMOTE_ADDR')
-    print(f"DEBUG: Health check hit! Host: {host}, Remote: {remote_addr}")
     return HttpResponse("OK")
 
 urlpatterns = [
