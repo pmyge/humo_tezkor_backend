@@ -1,17 +1,35 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django import forms
+from django.db.models import Q
 from .models import UserProfile, Customer, Notification, About
+
+
+class UserProfileCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = UserProfile
+        fields = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser')
+
+
+class UserProfileChangeForm(UserChangeForm):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
 
 
 @admin.register(UserProfile)
 class UserProfileAdmin(UserAdmin):
+    add_form = UserProfileCreationForm
+    form = UserProfileChangeForm
+    
     list_display = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'created_at')
     search_fields = ('username', 'first_name', 'last_name', 'phone_number')
     list_per_page = 15
     readonly_fields = ('created_at', 'updated_at')
     
-    # Customizing fieldsets to include our custom fields while keeping standard UserAdmin fields
+    # Customizing fieldsets for the edit page
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'phone_number', 'language')}),
@@ -21,19 +39,22 @@ class UserProfileAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined', 'created_at', 'updated_at')}),
     )
 
+    # Customizing fieldsets for the "Add User" page as requested
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('username', 'password', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser'),
         }),
+        ('Permissions and Roles', {
+            'classes': ('wide',),
+            'fields': ('groups', 'user_permissions'),
+        }),
     )
 
     def get_queryset(self, request):
-        # Allow superusers to see everyone, but filter for is_staff for others (optional)
+        # Strict filtering for Administration Team (Staff OR Superuser)
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(is_staff=True)
+        return qs.filter(Q(is_staff=True) | Q(is_superuser=True))
 
 
 @admin.register(Customer)
@@ -42,10 +63,11 @@ class CustomerAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'last_login')
     search_fields = ('id', 'first_name', 'phone_number', 'username')
     list_per_page = 15
-    readonly_fields = ('id', 'created_at', 'updated_at', 'last_login')
+    readonly_fields = ('id', 'created_at', 'updated_at', 'last_login', 'date_joined')
     
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(is_staff=False)
+        # Strict filtering for Users (Mini App) - NOT Staff AND NOT Superuser
+        return super().get_queryset(request).filter(is_staff=False, is_superuser=False)
     
     fieldsets = (
         ('User Info', {
@@ -54,11 +76,19 @@ class CustomerAdmin(admin.ModelAdmin):
         ('Contact', {
             'fields': ('phone_number',)
         }),
+        ('Status', {
+            'fields': ('is_active',),
+            'classes': ('collapse',)
+        }),
         ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('created_at', 'updated_at', 'date_joined'),
             'classes': ('collapse',)
         }),
     )
+
+    def has_add_permission(self, request):
+        # Usually customers are added via Mini App, not admin panel
+        return False
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('title_uz', 'is_broadcast', 'created_at')
