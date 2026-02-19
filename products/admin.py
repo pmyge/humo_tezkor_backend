@@ -34,11 +34,4 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'price', 'order', 'is_active')
-    list_per_page = 15
-    # Temporarily removed for debugging
-    # list_filter = ('category', 'is_active', 'created_at')
-    # search_fields = ('name', 'name_ru', 'description')
-    # list_editable = ('price', 'order', 'is_active')
-    # list_select_related = ('category',)
-    # readonly_fields = ('id', 'image_base64')
+    list_display = ('id', 'name')
