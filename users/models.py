@@ -25,7 +25,7 @@ class UserProfile(AbstractUser):
             name = f"{self.first_name} {self.last_name}".strip() or self.username or f"User {self.id}"
             if self.is_staff:
                 return f"{name} (ADMIN)"
-            return f"{self.id or '?'}. {name} ({self.phone_number or 'No phone'})"
+            return name
         except Exception:
             return f"User {self.id or 'Unknown'}"
 
@@ -40,7 +40,7 @@ class Customer(UserProfile):
 
     def __str__(self):
         name = f"{self.first_name} {self.last_name}".strip() or self.username
-        return f"{self.id}. {name} ({self.phone_number or 'No phone'})"
+        return name
 
 
 class Notification(models.Model):
