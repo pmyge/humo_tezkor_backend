@@ -35,6 +35,5 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'category', 'price', 'order', 'is_active')
-    list_per_page = 10
     search_fields = ('name',)
     # list_select_related and list_filter are temporarily removed to ensure stability
