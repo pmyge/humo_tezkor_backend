@@ -34,26 +34,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'name_ru', 'category', 'price', 'order', 'is_active', 'created_at')
-    list_filter = ('category', 'is_active', 'created_at')
-    search_fields = ('name', 'name_ru', 'description')
-    list_editable = ('price', 'order', 'is_active')
-    list_select_related = ('category',)
-    ordering = ('order', 'name')
+    list_display = ('id', 'name', 'category', 'price', 'order', 'is_active')
     list_per_page = 15
-    readonly_fields = ('id', 'image_base64')
-    
-    fieldsets = (
-        ('General', {
-            'fields': ('category', 'name', 'name_ru', 'image', 'image_base64', 'price')
-        }),
-        ('Description', {
-            'fields': ('description', 'description_ru'),
-        }),
-        ('Settings', {
-            'fields': ('order', 'is_active')
-        }),
-    )
-
-    class Media:
-        js = ('products/admin_translate.js',)
+    # Temporarily removed for debugging
+    # list_filter = ('category', 'is_active', 'created_at')
+    # search_fields = ('name', 'name_ru', 'description')
+    # list_editable = ('price', 'order', 'is_active')
+    # list_select_related = ('category',)
+    # readonly_fields = ('id', 'image_base64')
