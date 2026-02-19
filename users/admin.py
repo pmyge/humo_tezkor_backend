@@ -1,17 +1,39 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import UserProfile, Customer, Notification, About
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(UserAdmin):
     list_display = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'created_at')
     search_fields = ('username', 'first_name', 'last_name', 'phone_number')
     list_per_page = 15
     readonly_fields = ('created_at', 'updated_at')
     
+    # Customizing fieldsets to include our custom fields while keeping standard UserAdmin fields
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'phone_number', 'language')}),
+        ('Permissions', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+        }),
+        ('Important dates', {'fields': ('last_login', 'date_joined', 'created_at', 'updated_at')}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser'),
+        }),
+    )
+
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(is_staff=True)
+        # Allow superusers to see everyone, but filter for is_staff for others (optional)
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(is_staff=True)
 
 
 @admin.register(Customer)
