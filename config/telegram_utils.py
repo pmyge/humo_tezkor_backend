@@ -3,6 +3,7 @@ import os
 import logging
 import urllib.request
 import urllib.parse
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +14,14 @@ def send_telegram_notification(message):
     Uses urllib.request for zero dependencies.
     """
     token = os.getenv('BOT_TOKEN')
-    chat_id = os.getenv('TELEGRAM_CHAT_ID')  # e.g., @humotezkor or numeric ID
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+
+    print(f"DEBUG: Attempting to send TG notification. Chat ID: {chat_id}, Token exists: {bool(token)}")
 
     if not token or not chat_id:
-        logger.error("Telegram notification failed: BOT_TOKEN or TELEGRAM_CHAT_ID not configured.")
+        msg = "Telegram notification failed: BOT_TOKEN or TELEGRAM_CHAT_ID not configured."
+        logger.error(msg)
+        print(f"DEBUG: {msg}")
         return False
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -24,7 +29,8 @@ def send_telegram_notification(message):
     data = {
         'chat_id': chat_id,
         'text': message,
-        'parse_mode': 'HTML'
+        'parse_mode': 'HTML',
+        'disable_web_page_preview': True
     }
     
     try:
@@ -33,8 +39,17 @@ def send_telegram_notification(message):
         jsondata = json.dumps(data).encode('utf-8')
         
         with urllib.request.urlopen(req, jsondata, timeout=10) as response:
-            result = response.read()
+            result = response.read().decode('utf-8')
+            print(f"DEBUG: TG Notification sent successfully. Response: {result}")
             return True
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        msg = f"Telegram API Error (HTTP {e.code}): {error_body}"
+        logger.error(msg)
+        print(f"DEBUG: {msg}")
+        return False
     except Exception as e:
-        logger.error(f"Error sending Telegram notification: {e}")
+        msg = f"Error sending Telegram notification: {str(e)}"
+        logger.error(msg)
+        print(f"DEBUG: {msg}")
         return False
