@@ -1,0 +1,26 @@
+/* Increase width of the horizontal filter selector in Django Admin */
+.selector {
+    width: 800px !important;
+    max-width: 90vw !important;
+}
+
+.selector-available,
+.selector-chosen {
+    width: 380px !important;
+    max-width: 44vw !important;
+}
+
+.selector-available select,
+.selector-chosen select {
+    width: 100% !important;
+    height: 400px !important;
+}
+
+.selector .selector-filter input {
+    width: calc(100% - 30px) !important;
+}
+
+/* Fix for Jazzmin tabs spacing */
+.card-body .tab-content {
+    padding: 20px 0;
+}

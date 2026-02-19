@@ -79,7 +79,7 @@ JAZZMIN_SETTINGS = {
     #############
     # UI Tweaks #
     #############
-    "custom_css": None,
+    "custom_css": "products/custom_admin.css",
     "custom_js": None,
     "show_ui_builder": False,
     
