@@ -61,6 +61,25 @@ def create_order(request):
         order.total_amount = total_amount
         order.save()
         
+        # Send notification to Telegram group
+        try:
+            from config.telegram_utils import send_telegram_notification
+            from django.conf import settings
+            
+            admin_url = "https://punyo-market-backend.onrender.com/admin/orders/order/"
+            msg = (
+                "<b>🔥 HUMO TEZKOR: Yangi buyurtma qabul qilindi!</b>\n\n"
+                f"🆔 <b>Buyurtma ID:</b> #{order.id}\n"
+                f"👤 <b>Mijoz:</b> {user.first_name} {user.last_name}\n"
+                f"📞 <b>Tel:</b> {order.phone_number}\n"
+                f"💰 <b>Jami summa:</b> {order.total_amount:,.0f} UZS\n\n"
+                "🚀 Zudlik bilan admin panelga o'ting!\n"
+                f"🔗 <a href='{admin_url}{order.id}/change/'>Buyurtmani ko'rish</a>"
+            )
+            send_telegram_notification(msg)
+        except Exception as e:
+            print(f"DEBUG: Failed to send TG notification: {e}")
+
         serializer = OrderSerializer(order)
         print(f"DEBUG: Order #{order.id} created successfully.")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
