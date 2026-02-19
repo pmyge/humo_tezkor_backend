@@ -59,6 +59,8 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'about_us'
+        db_table = 'users_notification'
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
         ordering = ['-created_at']
@@ -74,6 +76,8 @@ class NotificationRead(models.Model):
     read_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'about_us'
+        db_table = 'users_notificationread'
         unique_together = ('user', 'notification')
 
 
@@ -89,6 +93,8 @@ class About(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'about_us'
+        db_table = 'users_about'
         verbose_name = "About Us"
         verbose_name_plural = "About Us"
 

@@ -48,13 +48,23 @@ JAZZMIN_SETTINGS = {
     
     # Custom icons for side menu apps/models
     "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "users.UserProfile": "fas fa-user-circle",
+        "auth": "fas fa-shield-alt",
+        "auth.Group": "fas fa-users-cog",
+        "users": "fas fa-users",
+        "users.UserProfile": "fas fa-user-shield",
+        "users.Customer": "fas fa-user",
+        "products": "fas fa-box",
+        "products.Category": "fas fa-tags",
+        "products.Product": "fas fa-tshirt",
         "orders.Order": "fas fa-shopping-cart",
         "chat.ChatMessage": "fas fa-comments",
+        "about_us": "fas fa-info-circle",
+        "about_us.About": "fas fa-address-card",
+        "about_us.Notification": "fas fa-bell",
     },
+    
+    # Order for apps
+    "order_with_respect_to": ["auth", "users", "products", "orders", "chat", "about_us"],
     
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
