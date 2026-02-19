@@ -12,11 +12,10 @@ class ProductInline(admin.TabularInline):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'name_ru', 'order', 'is_active', 'created_at')
-    list_filter = ('is_active', 'created_at')
+    list_filter = ('is_active',)
     search_fields = ('name', 'name_ru')
-    list_editable = ('order', 'is_active')
     ordering = ('order', 'name')
-    list_per_page = 15
+    # list_per_page and list_editable removed to resolve 500 error during save
     inlines = [ProductInline]
     
     fieldsets = (

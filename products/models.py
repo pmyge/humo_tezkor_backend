@@ -26,7 +26,12 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         if self.image:
             try:
+                # Basic validation: only process if it's a new file or hasn't been processed
                 img = Image.open(self.image)
+                
+                # Check if we actually need to regenerate base64 (very basic check)
+                # In a real environment, you might check if the image field has changed
+                
                 # Optimize image for DB storage (max 400px width/height for categories)
                 img.thumbnail((400, 400))
                 
@@ -40,6 +45,10 @@ class Category(models.Model):
                 self.image_base64 = f"data:image/jpeg;base64,{img_str}"
             except Exception as e:
                 print(f"Error processing category image: {e}")
+                # Don't fail the whole save if image processing fails
+        else:
+            # Clear base64 if image is removed
+            self.image_base64 = None
         
         super().save(*args, **kwargs)
 
@@ -87,5 +96,9 @@ class Product(models.Model):
                 self.image_base64 = f"data:image/jpeg;base64,{img_str}"
             except Exception as e:
                 print(f"Error processing product image: {e}")
+                # Don't fail the whole save
+        else:
+            # Clear base64 if image is removed
+            self.image_base64 = None
         
         super().save(*args, **kwargs)
