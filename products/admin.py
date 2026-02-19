@@ -1,3 +1,4 @@
+# Admin panel synchronization marker: 2026-02-19 21:58
 from django.contrib import admin
 from .models import Category, Product
 
