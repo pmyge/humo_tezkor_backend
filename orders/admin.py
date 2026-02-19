@@ -16,7 +16,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'user', 'phone_number', 'status', 
         'total_amount', 'get_products', 'get_categories_links', 
-        'delivery_address', 'created_at'
+        'get_delivery_address_map', 'created_at'
     )
     list_select_related = ('user',)
     list_per_page = 15
@@ -24,6 +24,33 @@ class OrderAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # Optimization: Prefetch items and their related products and categories
         return super().get_queryset(request).prefetch_related('items__product__category')
+
+    @admin.display(description='Delivery address')
+    def get_delivery_address_map(self, obj):
+        if not obj.delivery_address and not (obj.latitude and obj.longitude):
+            return "-"
+        
+        from urllib.parse import quote
+        
+        # Priority: coordinates if available, otherwise search by address text
+        if obj.latitude and obj.longitude:
+            # Yandex Maps URL with point (pt)
+            map_url = f"https://yandex.uz/maps/?pt={obj.longitude},{obj.latitude}&z=16&l=map"
+        else:
+            # Yandex Maps Search URL
+            map_url = f"https://yandex.uz/maps/?text={quote(obj.delivery_address)}"
+            
+        return format_html(
+            '<div style="max-width: 250px; line-height: 1.4;">'
+            '{}<br/>'
+            '<a href="{}" target="_blank" style="'
+            'display: inline-block; margin-top: 5px; padding: 4px 8px; '
+            'background: #ffcc00; color: #000; text-decoration: none; '
+            'border-radius: 4px; font-weight: bold; font-size: 11px;'
+            '">📍 Location (Yandex)</a>'
+            '</div>',
+            obj.delivery_address, map_url
+        )
 
     @admin.display(description='Mahsulotlar')
     def get_products(self, obj):
