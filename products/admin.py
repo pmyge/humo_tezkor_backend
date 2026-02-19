@@ -38,7 +38,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category', 'is_active', 'created_at')
     search_fields = ('name', 'name_ru', 'description')
     list_editable = ('price', 'order', 'is_active')
-    ordering = ('category', 'order', 'name')
+    list_select_related = ('category',)
+    ordering = ('order', 'name')
     list_per_page = 15
     readonly_fields = ('id', 'image_base64')
     
