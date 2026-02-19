@@ -15,6 +15,7 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name', 'name_ru')
     list_editable = ('order', 'is_active')
     ordering = ('order', 'name')
+    list_per_page = 15
     inlines = [ProductInline]
     
     fieldsets = (
@@ -38,6 +39,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'name_ru', 'description')
     list_editable = ('price', 'order', 'is_active')
     ordering = ('category', 'order', 'name')
+    list_per_page = 15
     readonly_fields = ('id', 'image_base64')
     
     fieldsets = (

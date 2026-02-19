@@ -25,7 +25,9 @@ class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ['user', 'message_preview', 'image_preview', 'is_from_admin', 'reply_link', 'created_at', 'is_read']
     list_filter = ['is_from_admin', 'is_read', 'created_at']
     search_fields = ['user__username', 'message']
+    list_per_page = 15
     readonly_fields = ['created_at', 'history_viewer']
+ bitumen
 
     fieldsets = (
         ('Xabar ma\'lumoti', {

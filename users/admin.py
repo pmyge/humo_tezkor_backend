@@ -7,6 +7,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'created_at')
     search_fields = ('username', 'first_name', 'last_name', 'phone_number')
+    list_per_page = 15
     readonly_fields = ('created_at', 'updated_at')
     
     def get_queryset(self, request):
@@ -18,6 +19,7 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ('id', 'first_name', 'phone_number', 'created_at', 'last_login')
     list_filter = ('created_at', 'last_login')
     search_fields = ('id', 'first_name', 'phone_number', 'username')
+    list_per_page = 15
     readonly_fields = ('id', 'created_at', 'updated_at', 'last_login')
     
     def get_queryset(self, request):
@@ -40,6 +42,7 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('title_uz', 'is_broadcast', 'created_at')
     list_filter = ('is_broadcast', 'created_at')
     search_fields = ('title_uz', 'title_ru', 'description_uz', 'description_ru')
+    list_per_page = 15
     filter_horizontal = ('recipients',)
     
     fieldsets = (

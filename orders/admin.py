@@ -19,6 +19,7 @@ class OrderAdmin(admin.ModelAdmin):
         'delivery_address', 'created_at'
     )
     list_select_related = ('user',)
+    list_per_page = 15
     
     def get_queryset(self, request):
         # Optimization: Prefetch items and their related products and categories
