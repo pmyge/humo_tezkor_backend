@@ -68,12 +68,11 @@ def create_order(request):
             
             admin_url = "https://punyo-market-backend.onrender.com/admin/orders/order/"
             msg = (
-                "<b>🔥 HUMO TEZKOR: Yangi buyurtma qabul qilindi!</b>\n\n"
+                "<b>Diqqat Humo_tezkor mini app dan yangi buyurtma kelib tushdi!</b>\n\n"
                 f"🆔 <b>Buyurtma ID:</b> #{order.id}\n"
                 f"👤 <b>Mijoz:</b> {user.first_name} {user.last_name}\n"
-                f"📞 <b>Tel:</b> {order.phone_number}\n"
                 f"💰 <b>Jami summa:</b> {order.total_amount:,.0f} UZS\n\n"
-                "🚀 Zudlik bilan admin panelga o'ting!\n"
+                "🚀 Tezroq tekshirish uchun admin panelga kiring:\n"
                 f"🔗 <a href='{admin_url}{order.id}/change/'>Buyurtmani ko'rish</a>"
             )
             send_telegram_notification(msg)
