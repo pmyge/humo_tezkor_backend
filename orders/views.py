@@ -66,14 +66,18 @@ def create_order(request):
             from config.telegram_utils import send_telegram_notification
             from django.conf import settings
             
-            admin_url = "https://punyo-market-backend.onrender.com/admin/orders/order/"
+            # Dynamic admin URL based on current host
+            scheme = request.scheme
+            host = request.get_host()
+            admin_link = f"{scheme}://{host}/admin/orders/order/{order.id}/change/"
+            
             msg = (
                 "<b>Diqqat Humo_tezkor mini app dan yangi buyurtma kelib tushdi!</b>\n\n"
                 f"🆔 <b>Buyurtma ID:</b> #{order.id}\n"
                 f"👤 <b>Mijoz:</b> {user.first_name} {user.last_name}\n"
                 f"💰 <b>Jami summa:</b> {order.total_amount:,.0f} UZS\n\n"
                 "🚀 Tezroq tekshirish uchun admin panelga kiring:\n"
-                f"🔗 <a href='{admin_url}{order.id}/change/'>Buyurtmani ko'rish</a>"
+                f"🔗 <a href='{admin_link}'>Buyurtmani ko'rish</a>"
             )
             send_telegram_notification(msg)
         except Exception as e:
