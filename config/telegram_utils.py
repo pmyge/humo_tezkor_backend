@@ -14,7 +14,7 @@ def send_telegram_notification(message):
     Uses urllib.request for zero dependencies.
     """
     # Fallback values if environment variables are not set on Render
-    token = os.getenv('BOT_TOKEN', '8354261773:AAFcVFIYIHRZ-9koTGSXaAtDo6zr-e-H3HI')
+    token = os.getenv('BOT_TOKEN', '8354261773:AAEh6AvvE3rrvnUoUoIN2lv3pj468ebZ5jQ')
     chat_id = os.getenv('TELEGRAM_CHAT_ID', '-1003528740543')
 
     print(f"DEBUG: Attempting to send TG notification. Chat ID: {chat_id}, Token exists: {bool(token)}")
