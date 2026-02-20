@@ -12,6 +12,7 @@ from django.db import transaction
 from products.models import Product
 from decimal import Decimal
 import traceback
+import html
 
 @api_view(['POST'])
 @transaction.atomic
@@ -61,14 +62,15 @@ def create_order(request):
         order.total_amount = total_amount
         order.save()
         
-        # Prepare notification message
+        # Prepare notification message with HTML escaping
         items_list_str = ""
         for idx, item in enumerate(items_data, 1):
             try:
                 p_id = item.get('product_id')
                 qty = item.get('quantity', 1)
                 product_obj = Product.objects.get(id=p_id)
-                items_list_str += f"{idx}. <b>{product_obj.name}</b> — {qty} dona\n"
+                p_name = html.escape(product_obj.name)
+                items_list_str += f"{idx}. <b>{p_name}</b> — {qty} dona\n"
             except:
                 continue
 
@@ -81,13 +83,18 @@ def create_order(request):
             host = request.get_host()
             admin_link = f"{scheme}://{host}/admin/orders/order/{order.id}/change/"
             
+            # Escape dynamic strings to prevent HTML parse errors
+            cust_name = html.escape(f"{user.first_name} {user.last_name}")
+            addr = html.escape(order.delivery_address or 'Ko\'rsatilmagan')
+            notes = html.escape(order.notes or 'Yo\'q')
+
             msg = (
                 "<b>🔔 Yangi buyurtma kelib tushdi!</b>\n\n"
                 f"🆔 <b>Buyurtma ID:</b> #{order.id}\n"
-                f"👤 <b>Mijoz:</b> {user.first_name} {user.last_name}\n"
+                f"👤 <b>Mijoz:</b> {cust_name}\n"
                 f"📞 <b>Telefon:</b> <code>{order.phone_number}</code>\n"
-                f"📍 <b>Manzil:</b> {order.delivery_address or 'Ko\'rsatilmagan'}\n"
-                f"💬 <b>Izoh:</b> {order.notes or 'Yo\'q'}\n\n"
+                f"📍 <b>Manzil:</b> {addr}\n"
+                f"💬 <b>Izoh:</b> {notes}\n\n"
                 "📦 <b>Mahsulotlar:</b>\n"
                 f"{items_list_str}\n"
                 f"💰 <b>Jami summa:</b> {order.total_amount:,.0f} UZS\n\n"
@@ -150,3 +157,18 @@ def get_all_orders(request):
     
     serializer = OrderSerializer(orders, many=True)
     return Response({'orders': serializer.data})
+
+
+@api_view(['GET'])
+def test_notification(request):
+    """Test Telegram notification from the backend environment"""
+    try:
+        from config.telegram_utils import send_telegram_notification
+        msg = "🔍 <b>Backend Test:</b> Telegram xabarnoma tekshiruvi (Test endpoint)."
+        success = send_telegram_notification(msg)
+        if success:
+            return Response({'status': 'Message sent successfully!'})
+        else:
+            return Response({'error': 'Failed to send message.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
