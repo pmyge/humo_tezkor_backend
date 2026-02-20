@@ -199,14 +199,25 @@ if DEBUG:
 else:
     # In Production (Render), use environment variables or wildcards
     FRONTEND_URL = os.getenv('WEB_APP_SHOP_URL', '*')
+    
+    # Strip any trailing slashes or paths for CORS/CSRF compliance
+    if FRONTEND_URL != "*" and FRONTEND_URL.startswith('http'):
+        from urllib.parse import urlparse
+        parsed_url = urlparse(FRONTEND_URL)
+        # origin = scheme://netloc (domain:port)
+        sanitized_origin = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    else:
+        sanitized_origin = FRONTEND_URL
+
     CORS_ALLOWED_ORIGINS = [
-        FRONTEND_URL,
-    ] if FRONTEND_URL != "*" else []
-    CORS_ALLOW_ALL_ORIGINS = (FRONTEND_URL == "*")
+        sanitized_origin,
+    ] if sanitized_origin != "*" and sanitized_origin.startswith('http') else []
+    
+    CORS_ALLOW_ALL_ORIGINS = (sanitized_origin == "*")
     
     CSRF_TRUSTED_ORIGINS = [
-        FRONTEND_URL,
-    ] if FRONTEND_URL.startswith('http') else []
+        sanitized_origin,
+    ] if sanitized_origin.startswith('http') else []
 
 from corsheaders.defaults import default_headers
 
