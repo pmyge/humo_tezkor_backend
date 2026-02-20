@@ -5,6 +5,21 @@ from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
 
 
+@api_view(['POST'])
+def translate_text(request):
+    """Translate text from Uzbek to Russian"""
+    text = request.data.get('text', '')
+    if not text:
+        return Response({'translated_text': ''})
+    
+    try:
+        from config.translation_utils import translate_uz_to_ru
+        translated = translate_uz_to_ru(text)
+        return Response({'translated_text': translated})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
 @extend_schema(
     summary="Get all active categories",
     description="Returns list of all active categories ordered by 'order' field",

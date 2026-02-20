@@ -37,3 +37,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'category', 'price', 'order', 'is_active')
     search_fields = ('name',)
     # list_select_related and list_filter are temporarily removed to ensure stability
+
+    class Media:
+        js = ('products/admin_translate.js',)

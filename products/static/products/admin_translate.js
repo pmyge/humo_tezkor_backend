@@ -7,31 +7,69 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!targetField || !sourceField) return;
 
+        // Check if button already exists
+        if (targetField.parentNode.querySelector('.btn-translate')) return;
+
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'btn btn-sm btn-info ml-2';
-        btn.innerHTML = '<i class="fas fa-magic"></i> Generate RU';
+        btn.className = 'btn btn-sm btn-info ml-2 btn-translate';
+        btn.innerHTML = '✨ Generatsiya';
         btn.style.marginTop = '5px';
+        btn.style.padding = '4px 8px';
+        btn.style.cursor = 'pointer';
 
-        btn.onclick = function () {
+        btn.onclick = async function () {
             const uzText = sourceField.value;
             if (!uzText) {
                 alert('Iltimos, avval uz maydonini to\'ldiring!');
                 return;
             }
 
-            // Simple mock translation / hint
-            // In a real app, you'd call a translation API here
-            targetField.value = uzText + ' (RU)';
-            targetField.style.backgroundColor = '#e8f0fe';
+            btn.disabled = true;
+            btn.innerHTML = '⌛ Tarjima qilinmoqda...';
 
-            console.log('Generating RU for:', uzText);
+            try {
+                const response = await fetch('/api/products/translate/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ text: uzText })
+                });
 
-            // Optional: provide a link to Google Translate for manual copy
-            window.open(`https://translate.google.com/?sl=uz&tl=ru&text=${encodeURIComponent(uzText)}&op=translate`, '_blank');
+                const data = await response.json();
+                if (data.translated_text) {
+                    targetField.value = data.translated_text;
+                    targetField.style.backgroundColor = '#e8f0fe';
+                } else if (data.error) {
+                    alert('Xatolik: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Translation error:', error);
+                alert('Tarjima qilishda xatolik yuz berdi.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Generatsiya';
+            }
         };
 
         targetField.parentNode.appendChild(btn);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     // Product Fields
