@@ -53,26 +53,46 @@
     border-radius: 4px !important;
 }
 
-/* Move Jazzmin/Admin save buttons to the top */
+/* Move Jazzmin/Admin save buttons to the top and make them full width */
 .col-12.col-lg-3 {
     width: 100% !important;
     max-width: 100% !important;
     flex: 0 0 100% !important;
     order: -1 !important;
-    /* Move to top of the flex container */
+    margin-bottom: 0 !important;
 }
 
 .col-12.col-lg-3 .card {
     display: flex !important;
-    flex-direction: row !important;
-    justify-content: flex-end !important;
+    flex-direction: column !important;
+    /* Stack vertically to match main window width */
     gap: 10px;
-    padding: 10px !important;
+    padding: 0 !important;
     border: none !important;
     background: transparent !important;
+    box-shadow: none !important;
 }
 
 .col-12.col-lg-3 .card>div {
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+.col-12.col-lg-3 .btn {
+    width: 100% !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+/* Make the main content area (lg-9) full width */
+.col-12.col-lg-9 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+}
+
+.col-12.col-lg-9 .card {
+    width: 100% !important;
     margin: 0 !important;
 }
 
