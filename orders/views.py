@@ -61,10 +61,20 @@ def create_order(request):
         order.total_amount = total_amount
         order.save()
         
+        # Prepare notification message
+        items_list_str = ""
+        for idx, item in enumerate(items_data, 1):
+            try:
+                p_id = item.get('product_id')
+                qty = item.get('quantity', 1)
+                product_obj = Product.objects.get(id=p_id)
+                items_list_str += f"{idx}. <b>{product_obj.name}</b> — {qty} dona\n"
+            except:
+                continue
+
         # Send notification to Telegram group
         try:
             from config.telegram_utils import send_telegram_notification
-            from django.conf import settings
             
             # Dynamic admin URL based on current host
             scheme = request.scheme
@@ -72,12 +82,17 @@ def create_order(request):
             admin_link = f"{scheme}://{host}/admin/orders/order/{order.id}/change/"
             
             msg = (
-                "<b>Diqqat Humo_tezkor mini app dan yangi buyurtma kelib tushdi!</b>\n\n"
+                "<b>🔔 Yangi buyurtma kelib tushdi!</b>\n\n"
                 f"🆔 <b>Buyurtma ID:</b> #{order.id}\n"
                 f"👤 <b>Mijoz:</b> {user.first_name} {user.last_name}\n"
+                f"📞 <b>Telefon:</b> <code>{order.phone_number}</code>\n"
+                f"📍 <b>Manzil:</b> {order.delivery_address or 'Ko\'rsatilmagan'}\n"
+                f"💬 <b>Izoh:</b> {order.notes or 'Yo\'q'}\n\n"
+                "📦 <b>Mahsulotlar:</b>\n"
+                f"{items_list_str}\n"
                 f"💰 <b>Jami summa:</b> {order.total_amount:,.0f} UZS\n\n"
-                "🚀 Tezroq tekshirish uchun admin panelga kiring:\n"
-                f"🔗 <a href='{admin_link}'>Buyurtmani ko'rish</a>"
+                "🚀 Buyurtmani boshqarish uchun admin panelga o'ting:\n"
+                f"🔗 <a href='{admin_link}'>Admin panelga o'tish</a>"
             )
             send_telegram_notification(msg)
         except Exception as e:
