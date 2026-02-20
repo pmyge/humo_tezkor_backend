@@ -197,15 +197,16 @@ if DEBUG:
         "http://127.0.0.1:5173",
     ]
 else:
-    # In Production (Render), we need to be careful but accessible
+    # In Production (Render), use environment variables or wildcards
+    FRONTEND_URL = os.getenv('WEB_APP_SHOP_URL', '*')
     CORS_ALLOWED_ORIGINS = [
-        "https://frontend-gold-delta-10.vercel.app",
-        "https://punyo-market-backend.onrender.com",
-    ]
+        FRONTEND_URL,
+    ] if FRONTEND_URL != "*" else []
+    CORS_ALLOW_ALL_ORIGINS = (FRONTEND_URL == "*")
+    
     CSRF_TRUSTED_ORIGINS = [
-        "https://frontend-gold-delta-10.vercel.app",
-        "https://punyo-market-backend.onrender.com",
-    ]
+        FRONTEND_URL,
+    ] if FRONTEND_URL.startswith('http') else []
 
 from corsheaders.defaults import default_headers
 
