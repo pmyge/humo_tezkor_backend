@@ -10,16 +10,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterUniqueTogether(
+            name='notificationread',
+            unique_together=None,
+        ),
         migrations.DeleteModel(
             name='About',
         ),
         migrations.RemoveField(
             model_name='notificationread',
             name='notification',
-        ),
-        migrations.AlterUniqueTogether(
-            name='notificationread',
-            unique_together=None,
         ),
         migrations.RemoveField(
             model_name='notificationread',
