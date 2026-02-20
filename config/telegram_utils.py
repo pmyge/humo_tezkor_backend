@@ -14,7 +14,7 @@ def send_telegram_notification(message):
     Uses urllib.request for zero dependencies.
     """
     token = os.getenv('BOT_TOKEN')
-    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID', '-1003528740543')
 
     print(f"DEBUG: Attempting to send TG notification. Chat ID: {chat_id}, Token exists: {bool(token)}")
 
