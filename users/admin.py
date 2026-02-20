@@ -9,7 +9,7 @@ from .models import UserProfile, Customer, Notification, About
 class UserProfileCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = UserProfile
-        fields = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser')
+        fields = ('username', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
 
 
 class UserProfileChangeForm(UserChangeForm):
@@ -39,11 +39,12 @@ class UserProfileAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined', 'created_at', 'updated_at')}),
     )
 
-    # Customizing fieldsets for the "Add User" page as requested
+    # Customizing fieldsets for the "Add User" page
+    # Note: UserCreationForm uses password1 and password2
     add_fieldsets = (
-        (None, {
+        ('General', {
             'classes': ('wide',),
-            'fields': ('username', 'password', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser'),
+            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser'),
         }),
         ('Permissions and Roles', {
             'classes': ('wide',),
