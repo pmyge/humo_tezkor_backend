@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import UserProfile, Notification, NotificationRead, About
+from .models import UserProfile
+from about_us.models import Notification, NotificationRead, About
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

@@ -3,7 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
 from django.db.models import Q
-from .models import UserProfile, Customer, Notification, About
+from .models import UserProfile, Customer
+from about_us.models import Notification, About, NotificationRead
 
 
 class UserProfileCreationForm(UserCreationForm):
