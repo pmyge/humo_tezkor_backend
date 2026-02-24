@@ -54,9 +54,25 @@ class UserProfileAdmin(UserAdmin):
     )
 
     def get_queryset(self, request):
-        # Strict filtering for Administration Team (Staff OR Superuser)
         qs = super().get_queryset(request)
-        return qs.filter(Q(is_staff=True) | Q(is_superuser=True))
+        # Only show staff/superusers in this admin
+        qs = qs.filter(Q(is_staff=True) | Q(is_superuser=True))
+        # If the requester is not a superuser, hide all superusers
+        if not request.user.is_superuser:
+            return qs.filter(is_superuser=False)
+        return qs
+
+    def has_change_permission(self, request, obj=None):
+        # If trying to edit a superuser but requester is not a superuser, deny
+        if obj and obj.is_superuser and not request.user.is_superuser:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        # If trying to delete a superuser but requester is not a superuser, deny
+        if obj and obj.is_superuser and not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 @admin.register(Customer)
