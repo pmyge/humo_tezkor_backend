@@ -24,6 +24,11 @@ class Category(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        # Auto-increment order for new categories if not set
+        if not self.pk and self.order == 0:
+            max_order = Category.objects.aggregate(models.Max('order'))['order__max']
+            self.order = (max_order or 0) + 1
+
         if self.image:
             try:
                 # Basic validation: only process if it's a new file or hasn't been processed
@@ -81,6 +86,11 @@ class Product(models.Model):
         return f"{self.name} - {self.price} UZS"
 
     def save(self, *args, **kwargs):
+        # Auto-increment order for new products within category if not set
+        if not self.pk and self.order == 0:
+            max_order = Product.objects.filter(category=self.category).aggregate(models.Max('order'))['order__max']
+            self.order = (max_order or 0) + 1
+
         if self.image:
             try:
                 img = Image.open(self.image)
