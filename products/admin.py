@@ -1,4 +1,4 @@
-# Admin panel synchronization marker: 2026-02-19 21:58
+# Admin panel synchronization marker: 2026-03-01 20:40
 from django.contrib import admin
 from .models import Category, Product
 
@@ -15,7 +15,6 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
     search_fields = ('name', 'name_ru')
     ordering = ('order', 'name')
-    # list_per_page and list_editable removed to resolve 500 error during save
     inlines = [ProductInline]
     
     fieldsets = (
@@ -35,8 +34,10 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'category', 'price', 'order', 'is_active')
-    search_fields = ('name',)
-    # list_select_related and list_filter are temporarily removed to ensure stability
+    list_filter = ('category', 'is_active')
+    search_fields = ('name', 'name_ru')
+    list_select_related = ('category',)
+    ordering = ('category', 'order', 'name')
 
     class Media:
         js = ('products/admin_translate.js',)
